@@ -19,7 +19,7 @@ public class Main {
     private static Router configureRouter() {
         Router router = new Router();
         router.addService("/echo", new EchoService());
-
+        //router.addService("/user", new UserService());
         return router;
     }
 }
