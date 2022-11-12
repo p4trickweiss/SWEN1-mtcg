@@ -10,6 +10,8 @@ public class User {
     private String username;
     @JsonAlias({"Password"})
     private String password;
+    @JsonAlias({"Token"})
+    private String token;
 
     public User(Integer id) {
         this.id = id;
@@ -24,6 +26,14 @@ public class User {
 
     public Integer getId() {
         return id;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public void setId(Integer id) {

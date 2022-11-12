@@ -18,7 +18,7 @@ public class UserRepo {
 
     public User getUser(int id) {
         User user = null;
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM \"user\" WHERE id = ?");){
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM \"user\" WHERE id = ?")){
             statement.setInt(1, id);
             ResultSet resultSet = statement.executeQuery();
             if(resultSet.next()) {
@@ -34,7 +34,7 @@ public class UserRepo {
 
     public User getUser(String username) {
         User user = null;
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM \"user\" WHERE username = ?");){
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM \"user\" WHERE username = ?")){
             statement.setString(1, username);
             ResultSet resultSet = statement.executeQuery();
             if(resultSet.next()) {
@@ -49,9 +49,19 @@ public class UserRepo {
     }
 
     public void createUser(User user) {
-        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO \"user\" (username, password) VALUES (?, ?)");) {
+        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO \"user\" (username, password) VALUES (?, ?)")) {
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getPassword());
+            statement.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void createSession(User user) {
+        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO sessions (token, fk_uid) VALUES (?, (SELECT uid FROM \"user\" WHERE username = ?))")) {
+            statement.setString(1, user.getToken());
+            statement.setString(2, user.getUsername());
             statement.execute();
         } catch (SQLException e) {
             e.printStackTrace();

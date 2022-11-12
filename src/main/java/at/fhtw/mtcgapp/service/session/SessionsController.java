@@ -1,4 +1,4 @@
-package at.fhtw.mtcgapp.service.user;
+package at.fhtw.mtcgapp.service.session;
 
 import at.fhtw.httpserver.http.ContentType;
 import at.fhtw.httpserver.http.HttpStatus;
@@ -8,34 +8,31 @@ import at.fhtw.mtcgapp.controller.Controller;
 import at.fhtw.mtcgapp.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-public class UserController extends Controller {
+public class SessionsController extends Controller {
 
-    private final UserUOW userUOW;
+    private final SessionsUOW sessionsUOW;
 
-    public UserController() {
-        this.userUOW = new UserUOW();
-    }
+    public SessionsController() { sessionsUOW = new SessionsUOW(); }
 
-    public Response addUser(Request request) {
-
+    public Response logIn(Request request) {
         try {
             User user = this.getObjectMapper().readValue(request.getBody(), User.class);
             try {
-                this.userUOW.addUser(user);
+                this.sessionsUOW.logIn(user);
             } catch (Exception e) {
-                if(e.getMessage() == "User already exists")
+                if(e.getMessage() == "Invalid username/password provided")
                     return new Response(
-                            HttpStatus.FORBIDDEN,
+                            HttpStatus.UNAUTHORIZED,
                             ContentType.JSON,
-                            "{ message : \"User already exists\" }"
+                            "{ message : \"Invalid username/password provided\" }"
                     );
             }
 
             return new Response(
-                    HttpStatus.CREATED,
+                    HttpStatus.OK,
                     ContentType.JSON,
-                    "{ message : \"Success\" }"
-                    );
+                    user.getToken()
+            );
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
