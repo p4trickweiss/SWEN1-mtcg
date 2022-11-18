@@ -1,7 +1,6 @@
 package at.fhtw.mtcgapp.dal.repos;
 
 import at.fhtw.mtcgapp.model.User;
-import at.fhtw.mtcgapp.service.user.UserUOW;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

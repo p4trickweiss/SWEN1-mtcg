@@ -22,21 +22,21 @@ public class SessionsController extends Controller {
         try {
             User user = this.getObjectMapper().readValue(request.getBody(), User.class);
             try {
-                UserRepo userRepo = new UserRepo(uow.getConnection());
-                uow.getConnection().setAutoCommit(false);
+                UserRepo userRepo = new UserRepo(this.uow.getConnection());
+                this.uow.getConnection().setAutoCommit(false);
                 User userdata = userRepo.getUser(user.getUsername());
                 if(user.getUsername().equals(userdata.getUsername()) && user.getPassword().equals(userdata.getPassword())){
                     user.setToken(user.getUsername() + "-mtcgToken");
                     userRepo.createSession(user);
                 } else {
-                    uow.getConnection().commit();
+                    this.uow.getConnection().commit();
                     return new Response(
                             HttpStatus.UNAUTHORIZED,
                             ContentType.JSON,
                             "{ \"message\" : \"Invalid username/password\" }"
                     );
                 }
-               uow.getConnection().commit();
+               this.uow.getConnection().commit();
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
@@ -44,14 +44,14 @@ public class SessionsController extends Controller {
                 );
             } catch (SQLException sqlException)  {
                 sqlException.printStackTrace();
-                if (uow.getConnection() != null) {
+                if (this.uow.getConnection() != null) {
                     try {
                         System.err.print("Transaction is being rolled back");
-                        uow.getConnection().rollback();
-                    } catch (SQLException excep) {
-                        excep.printStackTrace();
+                        this.uow.getConnection().rollback();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
                     }
-                    }
+                }
             }
 
         } catch (JsonProcessingException e) {

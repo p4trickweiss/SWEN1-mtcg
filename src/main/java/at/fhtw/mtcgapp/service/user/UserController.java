@@ -5,15 +5,19 @@ import at.fhtw.httpserver.http.HttpStatus;
 import at.fhtw.httpserver.server.Request;
 import at.fhtw.httpserver.server.Response;
 import at.fhtw.mtcgapp.controller.Controller;
+import at.fhtw.mtcgapp.dal.UOW;
+import at.fhtw.mtcgapp.dal.repos.UserRepo;
 import at.fhtw.mtcgapp.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import java.sql.SQLException;
+
 public class UserController extends Controller {
 
-    private final UserUOW userUOW;
+    private final UOW uow;
 
     public UserController() {
-        this.userUOW = new UserUOW();
+        this.uow = new UOW();
     }
 
     public Response addUser(Request request) {
@@ -21,21 +25,36 @@ public class UserController extends Controller {
         try {
             User user = this.getObjectMapper().readValue(request.getBody(), User.class);
             try {
-                this.userUOW.addUser(user);
-            } catch (Exception e) {
-                if(e.getMessage() == "User already exists")
+                UserRepo userRepo = new UserRepo(this.uow.getConnection());
+                this.uow.getConnection().setAutoCommit(false);
+                if(userRepo.getUser(user.getUsername()) == null) {
+                    userRepo.createUser(user);
+                    this.uow.getConnection().commit();
                     return new Response(
-                            HttpStatus.FORBIDDEN,
+                            HttpStatus.CREATED,
                             ContentType.JSON,
-                            "{ message : \"User already exists\" }"
+                            "{ message : \"Success\" }"
                     );
+                }
+                this.uow.getConnection().commit();
+                return new Response(
+                        HttpStatus.FORBIDDEN,
+                        ContentType.JSON,
+                        "{ message : \"User already exists\" }"
+                );
+            } catch (Exception sqlException) {
+                sqlException.printStackTrace();
+                if (this.uow.getConnection() != null) {
+                    try {
+                        System.err.print("Transaction is being rolled back");
+                        this.uow.getConnection().rollback();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
 
-            return new Response(
-                    HttpStatus.CREATED,
-                    ContentType.JSON,
-                    "{ message : \"Success\" }"
-                    );
+
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
