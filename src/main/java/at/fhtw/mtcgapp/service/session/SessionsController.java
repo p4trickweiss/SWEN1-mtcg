@@ -25,9 +25,12 @@ public class SessionsController extends Controller {
                 UserRepo userRepo = new UserRepo(this.uow.getConnection());
                 this.uow.getConnection().setAutoCommit(false);
                 User userdata = userRepo.getUser(user.getUsername());
-                if(user.getUsername().equals(userdata.getUsername()) && user.getPassword().equals(userdata.getPassword())){
-                    user.setToken(user.getUsername() + "-mtcgToken");
-                    userRepo.createSession(user);
+                if(userdata != null && user.getUsername().equals(userdata.getUsername()) && user.getPassword().equals(userdata.getPassword())){
+                    if(userRepo.checkUserSession(user) == 0){
+                        user.setToken(user.getUsername() + "-mtcgToken");
+                        userRepo.createSession(user);
+                    }
+                    user.setToken(userRepo.getToken(user));
                 } else {
                     this.uow.getConnection().commit();
                     return new Response(

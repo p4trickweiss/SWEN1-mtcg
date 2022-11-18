@@ -57,6 +57,34 @@ public class UserRepo {
         }
     }
 
+    public int checkUserSession(User user) {
+        int tokenCounter = 0;
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM  \"user\" AS u JOIN \"sessions\" AS s ON u.uid = s.fk_uid WHERE username = ?")) {
+            statement.setString(1, user.getUsername());
+            ResultSet resultSet = statement.executeQuery();
+            if(resultSet.next()){
+                tokenCounter++;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return tokenCounter;
+    }
+
+    public String getToken(User user) {
+        String token = "";
+        try (PreparedStatement statement = connection.prepareStatement("SELECT token FROM  \"user\" AS u JOIN \"sessions\" AS s ON u.uid = s.fk_uid WHERE username = ?")) {
+            statement.setString(1, user.getUsername());
+            ResultSet resultSet = statement.executeQuery();
+            if(resultSet.next()){
+                token = resultSet.getString(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return token;
+    }
+
     public void createSession(User user) {
         try (PreparedStatement statement = connection.prepareStatement("INSERT INTO sessions (token, fk_uid) VALUES (?, (SELECT uid FROM \"user\" WHERE username = ?))")) {
             statement.setString(1, user.getToken());
