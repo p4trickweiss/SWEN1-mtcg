@@ -30,11 +30,7 @@ public class UserService implements Service {
                             "}"
             );
         } else if(request.getMethod() == Method.PUT && request.getPathParts().size() > 1) {
-            return new Response(
-                    HttpStatus.OK,
-                    ContentType.JSON,
-                    ""
-            );
+            return this.userController.updateUser(request);
         }
 
         return new Response(
