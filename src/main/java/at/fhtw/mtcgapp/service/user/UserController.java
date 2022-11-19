@@ -9,10 +9,8 @@ import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
 import at.fhtw.mtcgapp.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.mockito.internal.matchers.Null;
 
 import java.sql.SQLException;
-import java.util.Base64;
 
 public class UserController extends Controller {
 
@@ -63,6 +61,49 @@ public class UserController extends Controller {
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 ContentType.JSON,
                 "{ \"message\" : \"Internal Server Error\" }"
+        );
+    }
+
+    public Response getUser(Request request) {
+        String token = request.getHeaderMap().getHeader("Authorization");
+        token = token.split(" ")[1];
+        String userToSearch = request.getPathParts().get(1);
+        try {
+            UserRepo userRepo = new UserRepo(this.uow.getConnection());
+            this.uow.getConnection().setAutoCommit(false);
+            if(userRepo.getUserByUsername(userToSearch) == null) {
+                this.uow.getConnection().commit();
+                return new Response(
+                        HttpStatus.NOT_FOUND,
+                        ContentType.JSON,
+                        "{\"message\" : \"User not found\" }"
+                );
+            }
+            User userData = userRepo.getUserByUsername(userToSearch);
+            if(token.equals("admin-mtcgToken") || token.equals(userData.getToken())) {
+                this.uow.getConnection().commit();
+                return new Response(
+                        HttpStatus.OK,
+                        ContentType.JSON,
+                        "{ \"Name\" : \"" + userData.getName() +
+                                "\", \"Bio\" : \"" + userData.getBio() +
+                                "\", \"Image\" : \"" + userData.getImage() + "\" }"
+                );
+            }
+            this.uow.getConnection().commit();
+            return new Response(
+                    HttpStatus.UNAUTHORIZED,
+                    ContentType.JSON,
+                    "{\"message\" : \"Authentication information is missing or invalid\" }"
+            );
+        } catch (SQLException sqlException) {
+            sqlException.printStackTrace();
+        }
+
+        return new Response(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ContentType.JSON,
+                "{\"message\" : \"Internal Server Error\" }"
         );
     }
 

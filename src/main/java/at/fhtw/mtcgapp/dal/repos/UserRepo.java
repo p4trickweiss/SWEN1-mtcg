@@ -37,9 +37,14 @@ public class UserRepo {
             statement.setString(1, username);
             ResultSet resultSet = statement.executeQuery();
             if(resultSet.next()) {
-                user = new User(resultSet.getInt(1),
+                user = new User(
+                        resultSet.getInt(1),
                         resultSet.getString(2),
-                        resultSet.getString(3));
+                        resultSet.getString(3),
+                        resultSet.getString(4),
+                        resultSet.getString(5),
+                        resultSet.getString(6),
+                        resultSet.getString(7));
             }
         } catch (SQLException e) {
             e.printStackTrace();
