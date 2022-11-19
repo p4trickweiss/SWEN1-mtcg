@@ -15,7 +15,7 @@ public class UserRepo {
 
     public UserRepo(Connection connection) { this.connection = connection;}
 
-    public User getUser(int id) {
+    public User getUserById(int id) {
         User user = null;
         try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM \"user\" WHERE id = ?")){
             statement.setInt(1, id);
@@ -31,10 +31,26 @@ public class UserRepo {
         return user;
     }
 
-    public User getUser(String username) {
+    public User getUserByUsername(String username) {
         User user = null;
         try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM \"user\" WHERE username = ?")){
             statement.setString(1, username);
+            ResultSet resultSet = statement.executeQuery();
+            if(resultSet.next()) {
+                user = new User(resultSet.getInt(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return user;
+    }
+
+    public User getUserByToken(String token) {
+        User user = null;
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM \"user\" WHERE token = ?")){
+            statement.setString(1, token);
             ResultSet resultSet = statement.executeQuery();
             if(resultSet.next()) {
                 user = new User(resultSet.getInt(1),
@@ -57,23 +73,19 @@ public class UserRepo {
         }
     }
 
-    public int checkUserSession(User user) {
-        int tokenCounter = 0;
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM  \"user\" AS u JOIN \"sessions\" AS s ON u.uid = s.fk_uid WHERE username = ?")) {
-            statement.setString(1, user.getUsername());
-            ResultSet resultSet = statement.executeQuery();
-            if(resultSet.next()){
-                tokenCounter++;
-            }
+    public void setToken(User user) {
+        try (PreparedStatement statement = connection.prepareStatement("UPDATE \"user\" SET token = ? WHERE username = ?")) {
+            statement.setString(1, user.getToken());
+            statement.setString(2, user.getUsername());
+            statement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return tokenCounter;
     }
 
     public String getToken(User user) {
-        String token = "";
-        try (PreparedStatement statement = connection.prepareStatement("SELECT token FROM  \"user\" AS u JOIN \"sessions\" AS s ON u.uid = s.fk_uid WHERE username = ?")) {
+        String token = null;
+        try (PreparedStatement statement = connection.prepareStatement("SELECT token FROM  \"user\" WHERE username = ?")) {
             statement.setString(1, user.getUsername());
             ResultSet resultSet = statement.executeQuery();
             if(resultSet.next()){
@@ -85,10 +97,12 @@ public class UserRepo {
         return token;
     }
 
-    public void createSession(User user) {
-        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO sessions (token, fk_uid) VALUES (?, (SELECT uid FROM \"user\" WHERE username = ?))")) {
-            statement.setString(1, user.getToken());
-            statement.setString(2, user.getUsername());
+    public void updateUser(User user) {
+        try (PreparedStatement statement = connection.prepareStatement("UPDATE \"user\" SET name = ?, bio = ?, image = ? WHERE username = ?")) {
+            statement.setString(1, user.getName());
+            statement.setString(2, user.getBio());
+            statement.setString(3, user.getImage());
+            statement.setString(4, user.getUsername());
             statement.execute();
         } catch (SQLException e) {
             e.printStackTrace();

@@ -12,6 +12,12 @@ public class User {
     private String password;
     @JsonAlias({"Token"})
     private String token;
+    @JsonAlias({"Name"})
+    private String name;
+    @JsonAlias({"Bio"})
+    private String bio;
+    @JsonAlias({"Image"})
+    private String image;
 
     public User(Integer id) {
         this.id = id;
@@ -54,5 +60,29 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }
