@@ -10,7 +10,7 @@ import java.util.List;
 
 public class UserRepo {
 
-    private Connection connection;
+    private final Connection connection;
     private List<User> userData;
 
     public UserRepo(Connection connection) { this.connection = connection;}
