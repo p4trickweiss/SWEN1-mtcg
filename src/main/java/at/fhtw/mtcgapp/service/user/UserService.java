@@ -20,15 +20,7 @@ public class UserService implements Service {
         if(request.getMethod() == Method.POST) {
             return this.userController.addUser(request);
         } else if(request.getMethod() == Method.GET && request.getPathParts().size() > 1) {
-            return new Response(
-                    HttpStatus.OK,
-                    ContentType.JSON,
-                    "{\n" +
-                            "  \"Name\": \"Hoax\",\n" +
-                            "  \"Bio\": \"me playin...\",\n" +
-                            "  \"Image\": \":-)\"\n" +
-                            "}"
-            );
+            return this.userController.getUser(request);
         } else if(request.getMethod() == Method.PUT && request.getPathParts().size() > 1) {
             return this.userController.updateUser(request);
         }

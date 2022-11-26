@@ -30,6 +30,16 @@ public class User {
         this.password = password;
     }
 
+    public User(Integer id, String username, String password, String token, String name, String bio, String image) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.token = token;
+        this.name = name;
+        this.bio = bio;
+        this.image = image;
+    }
+
     public Integer getId() {
         return id;
     }
