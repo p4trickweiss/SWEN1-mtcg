@@ -11,8 +11,8 @@ public class UserService implements Service {
 
     private final UserController userController;
 
-    public UserService() {
-        this.userController = new UserController();
+    public UserService(UserController userController) {
+        this.userController = userController;
     }
 
     @Override
