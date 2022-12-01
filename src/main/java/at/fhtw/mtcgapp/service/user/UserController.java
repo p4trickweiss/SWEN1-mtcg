@@ -14,29 +14,25 @@ import java.sql.SQLException;
 
 public class UserController extends Controller {
 
-    private final UOW uow;
-
-    public UserController() {
-        this.uow = new UOW();
-    }
+    public UserController() {}
 
     public Response addUser(Request request) {
-
+        UOW uow = new UOW();
         try {
             User user = this.getObjectMapper().readValue(request.getBody(), User.class);
             try {
-                UserRepo userRepo = new UserRepo(this.uow.getConnection());
-                this.uow.getConnection().setAutoCommit(false);
+                UserRepo userRepo = new UserRepo(uow.getConnection());
+                uow.getConnection().setAutoCommit(false);
                 if(userRepo.getUserByUsername(user.getUsername()) == null) {
                     userRepo.createUser(user);
-                    this.uow.getConnection().commit();
+                    uow.getConnection().commit();
                     return new Response(
                             HttpStatus.CREATED,
                             ContentType.JSON,
                             "{ message : \"Success\" }"
                     );
                 }
-                this.uow.getConnection().commit();
+                uow.getConnection().commit();
                 return new Response(
                         HttpStatus.CONFLICT,
                         ContentType.JSON,
@@ -44,10 +40,10 @@ public class UserController extends Controller {
                 );
             } catch (Exception sqlException) {
                 sqlException.printStackTrace();
-                if (this.uow.getConnection() != null) {
+                if (uow.getConnection() != null) {
                     try {
                         System.err.print("Transaction is being rolled back");
-                        this.uow.getConnection().rollback();
+                        uow.getConnection().rollback();
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
@@ -65,14 +61,14 @@ public class UserController extends Controller {
     }
 
     public Response getUser(Request request) {
-        String token = request.getHeaderMap().getHeader("Authorization");
-        token = token.split(" ")[1];
+        UOW uow = new UOW();
+        String token = request.getToken();
         String userToSearch = request.getPathParts().get(1);
         try {
-            UserRepo userRepo = new UserRepo(this.uow.getConnection());
-            this.uow.getConnection().setAutoCommit(false);
+            UserRepo userRepo = new UserRepo(uow.getConnection());
+            uow.getConnection().setAutoCommit(false);
             if(userRepo.getUserByUsername(userToSearch) == null) {
-                this.uow.getConnection().commit();
+                uow.getConnection().commit();
                 return new Response(
                         HttpStatus.NOT_FOUND,
                         ContentType.JSON,
@@ -81,7 +77,7 @@ public class UserController extends Controller {
             }
             User userData = userRepo.getUserByUsername(userToSearch);
             if(token.equals("admin-mtcgToken") || token.equals(userData.getToken())) {
-                this.uow.getConnection().commit();
+                uow.getConnection().commit();
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
@@ -90,7 +86,7 @@ public class UserController extends Controller {
                                 "\", \"Image\" : \"" + userData.getImage() + "\" }"
                 );
             }
-            this.uow.getConnection().commit();
+            uow.getConnection().commit();
             return new Response(
                     HttpStatus.UNAUTHORIZED,
                     ContentType.JSON,
@@ -108,6 +104,7 @@ public class UserController extends Controller {
     }
 
     public Response updateUser(Request request) {
+        UOW uow = new UOW();
         String token = request.getHeaderMap().getHeader("Authorization");
         token = token.split(" ")[1];
         User userToModify = new User();
@@ -115,10 +112,10 @@ public class UserController extends Controller {
         try {
             User userData = this.getObjectMapper().readValue(request.getBody(), User.class);
             try{
-                UserRepo userRepo = new UserRepo(this.uow.getConnection());
-                this.uow.getConnection().setAutoCommit(false);
+                UserRepo userRepo = new UserRepo(uow.getConnection());
+                uow.getConnection().setAutoCommit(false);
                 if(userRepo.getUserByUsername(userToModify.getUsername()) == null) {
-                    this.uow.getConnection().commit();
+                    uow.getConnection().commit();
                     return new Response(
                             HttpStatus.NOT_FOUND,
                             ContentType.JSON,
@@ -129,14 +126,14 @@ public class UserController extends Controller {
                 if(token.equals("admin-mtcgToken") || token.equals(userToModify.getToken())) {
                     userData.setUsername(userToModify.getUsername());
                     userRepo.updateUser(userData);
-                    this.uow.getConnection().commit();
+                    uow.getConnection().commit();
                     return new Response(
                             HttpStatus.OK,
                             ContentType.JSON,
                             "{\"message\" : \"User updated\" }"
                     );
                 }
-                this.uow.getConnection().commit();
+                uow.getConnection().commit();
                 return new Response(
                         HttpStatus.UNAUTHORIZED,
                         ContentType.JSON,
@@ -144,10 +141,10 @@ public class UserController extends Controller {
                 );
             } catch (SQLException sqlException) {
                 sqlException.printStackTrace();
-                if (this.uow.getConnection() != null) {
+                if (uow.getConnection() != null) {
                     try {
                         System.err.print("Transaction is being rolled back");
-                        this.uow.getConnection().rollback();
+                        uow.getConnection().rollback();
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }

@@ -1,4 +1,4 @@
-package at.fhtw.mtcgapp.service.session;
+package at.fhtw.mtcgapp.service.sessions;
 
 import at.fhtw.httpserver.http.ContentType;
 import at.fhtw.httpserver.http.HttpStatus;
@@ -11,7 +11,9 @@ public class SessionsService implements Service {
 
     private final SessionsController sessionsController;
 
-    public SessionsService() { this.sessionsController = new SessionsController(); }
+    public SessionsService(SessionsController sessionsController) {
+        this.sessionsController = sessionsController;
+    }
 
     @Override
     public Response handleRequest(Request request) {

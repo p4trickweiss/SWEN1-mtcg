@@ -101,4 +101,10 @@ public class Request {
     public void setPathParts(List<String> pathParts) {
         this.pathParts = pathParts;
     }
+
+    public String getToken() {
+        String token = this.getHeaderMap().getHeader("Authorization");
+        token = token.split(" ")[1];
+        return token;
+    }
 }

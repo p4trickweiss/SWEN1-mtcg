@@ -1,4 +1,4 @@
-package at.fhtw.mtcgapp.service.session;
+package at.fhtw.mtcgapp.service.sessions;
 
 import at.fhtw.httpserver.http.ContentType;
 import at.fhtw.httpserver.http.HttpStatus;
@@ -14,30 +14,29 @@ import java.sql.SQLException;
 
 public class SessionsController extends Controller {
 
-    private final UOW uow;
-
-    public SessionsController() { uow = new UOW(); }
+    public SessionsController() {}
 
     public Response logIn(Request request) {
+        UOW uow = new UOW();
         try {
             User user = this.getObjectMapper().readValue(request.getBody(), User.class);
             try {
-                UserRepo userRepo = new UserRepo(this.uow.getConnection());
-                this.uow.getConnection().setAutoCommit(false);
+                UserRepo userRepo = new UserRepo(uow.getConnection());
+                uow.getConnection().setAutoCommit(false);
                 User userdata = userRepo.getUserByUsername(user.getUsername());
                 if(userdata != null && user.getUsername().equals(userdata.getUsername()) && user.getPassword().equals(userdata.getPassword())){
                     user.setToken(user.getUsername() + "-mtcgToken");
                     userRepo.setToken(user);
                     user.setToken(userRepo.getToken(user));
                 } else {
-                    this.uow.getConnection().commit();
+                    uow.getConnection().commit();
                     return new Response(
                             HttpStatus.UNAUTHORIZED,
                             ContentType.JSON,
                             "{ \"message\" : \"Invalid username/password\" }"
                     );
                 }
-               this.uow.getConnection().commit();
+               uow.getConnection().commit();
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
@@ -45,10 +44,10 @@ public class SessionsController extends Controller {
                 );
             } catch (SQLException sqlException)  {
                 sqlException.printStackTrace();
-                if (this.uow.getConnection() != null) {
+                if (uow.getConnection() != null) {
                     try {
                         System.err.print("Transaction is being rolled back");
-                        this.uow.getConnection().rollback();
+                        uow.getConnection().rollback();
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
