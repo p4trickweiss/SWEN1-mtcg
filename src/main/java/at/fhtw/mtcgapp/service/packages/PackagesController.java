@@ -22,20 +22,32 @@ public class PackagesController extends Controller {
 
     public Response createPackage(Request request) {
         String token = request.getToken();
-        if(!token.equals("admin-mtcgToken")) {
-            return new Response(HttpStatus.UNAUTHORIZED,
-                                ContentType.JSON,
-                        "{ \"message\" : \"Authentication information is missing or invalid\" }"
-            );
-        }
-
         UOW uow = new UOW();
         try {
             List<Card> cards = new ArrayList<>();
             cards = this.getObjectMapper().readValue(request.getBody(), new TypeReference<List<Card>>() {});
             try {
                 PackageRepo packageRepo  = new PackageRepo(uow.getConnection());
+                UserRepo userRepo = new UserRepo(uow.getConnection());
                 uow.getConnection().setAutoCommit(false);
+                User user = userRepo.getUserByToken(token);
+
+                if(user == null) {
+                    uow.getConnection().commit();
+                    return new Response(HttpStatus.UNAUTHORIZED,
+                            ContentType.JSON,
+                            "{ \"message\" : \"Authentication information is missing or invalid\" }"
+                    );
+                }
+
+                if(!user.getUsername().equals("admin")) {
+                    uow.getConnection().commit();
+                    return new Response(HttpStatus.FORBIDDEN,
+                            ContentType.JSON,
+                            "{ \"message\" : \"Provided user is not admin\" }"
+                    );
+                }
+
                 int packageId = packageRepo.createPackageAndGetId();
                 for (Card card : cards) {
                     card.setFk_pid(packageId);

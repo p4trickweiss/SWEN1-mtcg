@@ -33,6 +33,24 @@ public class UserRepo {
         return user;
     }
 
+    public User getUserByToken(String token) throws SQLException {
+        User user = null;
+        PreparedStatement statement = connection.prepareStatement("SELECT * FROM \"user\" WHERE token = ?");
+        statement.setString(1, token);
+        ResultSet resultSet = statement.executeQuery();
+        if(resultSet.next()) {
+            user = new User(
+                    resultSet.getInt(1),
+                    resultSet.getString(2),
+                    resultSet.getString(3),
+                    resultSet.getString(4),
+                    resultSet.getString(5),
+                    resultSet.getString(6),
+                    resultSet.getString(7));
+        }
+        return user;
+    }
+
     public void createUser(User user) throws SQLException {
         PreparedStatement statement = connection.prepareStatement("INSERT INTO \"user\" (username, password) VALUES (?, ?)");
         statement.setString(1, user.getUsername());
