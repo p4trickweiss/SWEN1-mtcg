@@ -23,23 +23,16 @@ public class UserController extends Controller {
             try {
                 UserRepo userRepo = new UserRepo(uow.getConnection());
                 uow.getConnection().setAutoCommit(false);
-                if(userRepo.getUserByUsername(user.getUsername()) == null) {
-                    userRepo.createUser(user);
-                    uow.getConnection().commit();
-                    return new Response(
-                            HttpStatus.CREATED,
-                            ContentType.JSON,
-                            "{ message : \"Success\" }"
-                    );
-                }
+
+                userRepo.createUser(user);
                 uow.getConnection().commit();
                 return new Response(
-                        HttpStatus.CONFLICT,
+                        HttpStatus.CREATED,
                         ContentType.JSON,
-                        "{ message : \"User already exists\" }"
+                        "{ message : \"Success\" }"
                 );
-            } catch (Exception sqlException) {
-                sqlException.printStackTrace();
+
+            } catch (SQLException sqlException) {
                 if (uow.getConnection() != null) {
                     try {
                         System.err.print("Transaction is being rolled back");
@@ -47,6 +40,14 @@ public class UserController extends Controller {
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
+                }
+
+                if(sqlException.getErrorCode() == 0) {
+                    return new Response(
+                            HttpStatus.CONFLICT,
+                            ContentType.JSON,
+                            "{ message : \"User already exists\" }"
+                    );
                 }
             }
         } catch (JsonProcessingException e) {
@@ -61,13 +62,15 @@ public class UserController extends Controller {
     }
 
     public Response getUser(Request request) {
-        UOW uow = new UOW();
         String token = request.getToken();
         String userToSearch = request.getPathParts().get(1);
+        UOW uow = new UOW();
         try {
             UserRepo userRepo = new UserRepo(uow.getConnection());
             uow.getConnection().setAutoCommit(false);
-            if(userRepo.getUserByUsername(userToSearch) == null) {
+
+            User user = userRepo.getUserByUsername(userToSearch);
+            if(user == null) {
                 uow.getConnection().commit();
                 return new Response(
                         HttpStatus.NOT_FOUND,
@@ -75,15 +78,15 @@ public class UserController extends Controller {
                         "{\"message\" : \"User not found\" }"
                 );
             }
-            User userData = userRepo.getUserByUsername(userToSearch);
-            if(token.equals("admin-mtcgToken") || token.equals(userData.getToken())) {
+
+            if(token.equals("admin-mtcgToken") || token.equals(user.getToken())) {
                 uow.getConnection().commit();
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        "{ \"Name\" : \"" + userData.getName() +
-                                "\", \"Bio\" : \"" + userData.getBio() +
-                                "\", \"Image\" : \"" + userData.getImage() + "\" }"
+                        "{ \"Name\" : \"" + user.getName() +
+                                "\", \"Bio\" : \"" + user.getBio() +
+                                "\", \"Image\" : \"" + user.getImage() + "\" }"
                 );
             }
             uow.getConnection().commit();
@@ -104,16 +107,16 @@ public class UserController extends Controller {
     }
 
     public Response updateUser(Request request) {
-        UOW uow = new UOW();
-        String token = request.getHeaderMap().getHeader("Authorization");
-        token = token.split(" ")[1];
+        String token = request.getToken();
         User userToModify = new User();
         userToModify.setUsername(request.getPathParts().get(1));
+        UOW uow = new UOW();
         try {
             User userData = this.getObjectMapper().readValue(request.getBody(), User.class);
             try{
                 UserRepo userRepo = new UserRepo(uow.getConnection());
                 uow.getConnection().setAutoCommit(false);
+
                 if(userRepo.getUserByUsername(userToModify.getUsername()) == null) {
                     uow.getConnection().commit();
                     return new Response(
@@ -122,6 +125,7 @@ public class UserController extends Controller {
                             "{\"message\" : \"User not found\" }"
                     );
                 }
+
                 userToModify.setToken(userRepo.getToken(userToModify));
                 if(token.equals("admin-mtcgToken") || token.equals(userToModify.getToken())) {
                     userData.setUsername(userToModify.getUsername());

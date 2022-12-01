@@ -23,8 +23,8 @@ public class SessionsController extends Controller {
             try {
                 UserRepo userRepo = new UserRepo(uow.getConnection());
                 uow.getConnection().setAutoCommit(false);
-                User userdata = userRepo.getUserByUsername(user.getUsername());
-                if(userdata != null && user.getUsername().equals(userdata.getUsername()) && user.getPassword().equals(userdata.getPassword())){
+                User userCredentials = userRepo.getUserByUsername(user.getUsername());
+                if(userCredentials != null && user.getUsername().equals(userCredentials.getUsername()) && user.getPassword().equals(userCredentials.getPassword())){
                     user.setToken(user.getUsername() + "-mtcgToken");
                     userRepo.setToken(user);
                     user.setToken(userRepo.getToken(user));
@@ -43,7 +43,6 @@ public class SessionsController extends Controller {
                         user.getToken()
                 );
             } catch (SQLException sqlException)  {
-                sqlException.printStackTrace();
                 if (uow.getConnection() != null) {
                     try {
                         System.err.print("Transaction is being rolled back");
