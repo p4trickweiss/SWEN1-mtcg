@@ -8,6 +8,8 @@ import at.fhtw.mtcgapp.service.packages.PackagesController;
 import at.fhtw.mtcgapp.service.packages.PackagesService;
 import at.fhtw.mtcgapp.service.sessions.SessionsController;
 import at.fhtw.mtcgapp.service.sessions.SessionsService;
+import at.fhtw.mtcgapp.service.transactions.TransactionsController;
+import at.fhtw.mtcgapp.service.transactions.TransactionsService;
 import at.fhtw.mtcgapp.service.user.UserController;
 import at.fhtw.mtcgapp.service.user.UserService;
 
@@ -29,6 +31,7 @@ public class Main {
         router.addService("/users", new UserService(new UserController()));
         router.addService("/sessions",  new SessionsService(new SessionsController()));
         router.addService("/packages", new PackagesService(new PackagesController()));
+        router.addService("/transactions", new TransactionsService(new TransactionsController()));
         return router;
     }
 }

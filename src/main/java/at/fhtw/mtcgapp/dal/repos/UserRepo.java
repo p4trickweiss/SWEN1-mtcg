@@ -1,5 +1,6 @@
 package at.fhtw.mtcgapp.dal.repos;
 
+import at.fhtw.mtcgapp.model.Package;
 import at.fhtw.mtcgapp.model.User;
 
 import java.sql.Connection;
@@ -28,7 +29,8 @@ public class UserRepo {
                     resultSet.getString(4),
                     resultSet.getString(5),
                     resultSet.getString(6),
-                    resultSet.getString(7));
+                    resultSet.getString(7),
+                    resultSet.getInt(8));
         }
         return user;
     }
@@ -46,7 +48,8 @@ public class UserRepo {
                     resultSet.getString(4),
                     resultSet.getString(5),
                     resultSet.getString(6),
-                    resultSet.getString(7));
+                    resultSet.getString(7),
+                    resultSet.getInt(8));
         }
         return user;
     }
@@ -82,6 +85,13 @@ public class UserRepo {
         statement.setString(2, user.getBio());
         statement.setString(3, user.getImage());
         statement.setString(4, user.getUsername());
+        statement.execute();
+    }
+
+    public void payPackage(Package cardPackage, User user) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement("UPDATE \"user\" SET coins = coins - (SELECT price FROM package WHERE pid = ?) WHERE username = ?");
+        statement.setInt(1, cardPackage.getPid());
+        statement.setString(2, user.getUsername());
         statement.execute();
     }
 }

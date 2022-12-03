@@ -95,4 +95,19 @@ public class Card {
     public void setFk_uid(int fk_uid) {
         this.fk_uid = fk_uid;
     }
+
+    @Override
+    public String toString() {
+        return "Card{" +
+                "cid='" + cid + '\'' +
+                ", name='" + name + '\'' +
+                ", damage=" + damage +
+                ", type='" + type + '\'' +
+                ", element='" + element + '\'' +
+                ", in_deck=" + in_deck +
+                ", is_locked=" + is_locked +
+                ", fk_pid=" + fk_pid +
+                ", fk_uid=" + fk_uid +
+                '}';
+    }
 }

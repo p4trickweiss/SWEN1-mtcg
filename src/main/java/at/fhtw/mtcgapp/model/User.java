@@ -18,10 +18,8 @@ public class User {
     private String bio;
     @JsonAlias({"Image"})
     private String image;
-
-    public User(Integer id) {
-        this.id = id;
-    }
+    @JsonAlias({"Coins"})
+    private int coins;
 
     public User(){}
     public User(Integer id, String username, String password) {
@@ -30,7 +28,7 @@ public class User {
         this.password = password;
     }
 
-    public User(Integer id, String username, String password, String token, String name, String bio, String image) {
+    public User(Integer id, String username, String password, String token, String name, String bio, String image, int coins) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -38,6 +36,7 @@ public class User {
         this.name = name;
         this.bio = bio;
         this.image = image;
+        this.coins = coins;
     }
 
     public Integer getId() {
@@ -94,5 +93,13 @@ public class User {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public int getCoins() {
+        return coins;
+    }
+
+    public void setCoins(int coins) {
+        this.coins = coins;
     }
 }
