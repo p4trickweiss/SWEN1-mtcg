@@ -14,7 +14,7 @@ import java.util.List;
 
 public class PackageRepo {
 
-    private Connection connection;
+    private final Connection connection;
 
     public PackageRepo(Connection connection) {
         this.connection = connection;
