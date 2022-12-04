@@ -1,4 +1,4 @@
-package at.fhtw.mtcgapp.service.transactions;
+package at.fhtw.mtcgapp.service.cards;
 
 import at.fhtw.httpserver.http.ContentType;
 import at.fhtw.httpserver.http.HttpStatus;
@@ -8,58 +8,46 @@ import at.fhtw.mtcgapp.controller.Controller;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.PackageRepo;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
-import at.fhtw.mtcgapp.model.Card;
 import at.fhtw.mtcgapp.model.CardInfoUser;
-import at.fhtw.mtcgapp.model.Package;
 import at.fhtw.mtcgapp.model.User;
 import com.fasterxml.jackson.core.JacksonException;
 
 import java.sql.SQLException;
 import java.util.List;
 
-public class TransactionsController extends Controller {
-    public TransactionsController() {
+public class CardsController extends Controller {
+
+    public CardsController() {
     }
 
-    public Response acquirePackage(Request request) {
+    public Response getCards(Request request) {
         String token = request.getToken();
         UOW uow = new UOW();
-        try {
-            PackageRepo packageRepo = new PackageRepo(uow.getConnection());
-            UserRepo userRepo = new UserRepo(uow.getConnection());
-            uow.getConnection().setAutoCommit(false);
-            User user = userRepo.getUserByToken(token);
 
-            if (user == null) {
+        try {
+            UserRepo userRepo = new UserRepo(uow.getConnection());
+            PackageRepo packageRepo = new PackageRepo(uow.getConnection());
+            uow.getConnection().setAutoCommit(false);
+
+            User user = userRepo.getUserByToken(token);
+            if(user == null) {
                 uow.getConnection().commit();
                 return new Response(HttpStatus.UNAUTHORIZED,
-                        ContentType.JSON,
-                        "{ \"message\" : \"Authentication information is missing or invalid\" }"
+                                    ContentType.JSON,
+                            "{ \"message\" : \"Authentication information is missing or invalid\" }"
                 );
             }
 
-            if (user.getCoins() < 5) {
+            List<CardInfoUser> cards = packageRepo.getCardsByUid(user);
+
+            if(cards.isEmpty()) {
                 uow.getConnection().commit();
-                return new Response(HttpStatus.FORBIDDEN,
-                        ContentType.JSON,
-                        "{ \"message\" : \"Not enough money for buying a card package\" }"
+                return new Response(HttpStatus.NO_CONTENT,
+                                    ContentType.JSON,
+                            "{ \"message\" : \"The request was fine, but the user doesn't have any cards\" }"
                 );
             }
 
-            Package cardPackage = packageRepo.getPackage();
-            if(cardPackage == null) {
-                uow.getConnection().commit();
-                return new Response(HttpStatus.NOT_FOUND,
-                        ContentType.JSON,
-                        "{ \"message\" : \"No card package available for buying\" }"
-                );
-            }
-
-            packageRepo.makePackageUnavailable(cardPackage);
-            userRepo.payPackage(cardPackage, user);
-            packageRepo.acquireCardByPid(cardPackage, user);
-
-            List<CardInfoUser> cards = packageRepo.getCardsByPid(cardPackage);
             String json = null;
             try {
                 json = this.getObjectMapper().writeValueAsString(cards);
@@ -68,11 +56,11 @@ public class TransactionsController extends Controller {
             }
             uow.getConnection().commit();
             return new Response(HttpStatus.OK,
-                    ContentType.JSON,
-                    json
+                                ContentType.JSON,
+                                json
             );
-        }
-        catch (SQLException sqlException) {
+
+        } catch (SQLException sqlException) {
             sqlException.printStackTrace();
             if (uow.getConnection() != null) {
                 try {
@@ -83,6 +71,7 @@ public class TransactionsController extends Controller {
                 }
             }
         }
+
         return new Response(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 ContentType.JSON,

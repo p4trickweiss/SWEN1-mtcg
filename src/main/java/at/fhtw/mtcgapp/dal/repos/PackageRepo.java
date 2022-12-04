@@ -80,4 +80,19 @@ public class PackageRepo {
         }
         return cards;
     }
+
+    public List<CardInfoUser> getCardsByUid(User user) throws SQLException {
+        List<CardInfoUser> cards = new ArrayList<>();
+        PreparedStatement statement = connection.prepareStatement("SELECT * FROM card WHERE fk_uid = ?");
+        statement.setInt(1, user.getId());
+        ResultSet resultSet = statement.executeQuery();
+        while(resultSet.next()) {
+            cards.add(new CardInfoUser(
+                    resultSet.getString(1),
+                    resultSet.getString(2),
+                    resultSet.getInt(3)
+            ));
+        }
+        return cards;
+    }
 }
