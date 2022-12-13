@@ -5,6 +5,8 @@ import at.fhtw.httpserver.utils.Router;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.service.cards.CardsController;
 import at.fhtw.mtcgapp.service.cards.CardsService;
+import at.fhtw.mtcgapp.service.deck.DeckController;
+import at.fhtw.mtcgapp.service.deck.DeckService;
 import at.fhtw.mtcgapp.service.echo.EchoService;
 import at.fhtw.mtcgapp.service.packages.PackagesController;
 import at.fhtw.mtcgapp.service.packages.PackagesService;
@@ -35,6 +37,7 @@ public class Main {
         router.addService("/packages", new PackagesService(new PackagesController()));
         router.addService("/transactions", new TransactionsService(new TransactionsController()));
         router.addService("/cards", new CardsService(new CardsController()));
+        router.addService("/deck", new DeckService(new DeckController()));
         return router;
     }
 }

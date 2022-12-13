@@ -95,4 +95,32 @@ public class PackageRepo {
         }
         return cards;
     }
+
+    public List<CardInfoUser> getCardsInDeck(User user) throws SQLException {
+        List<CardInfoUser> cards = new ArrayList<>();
+        PreparedStatement statement = connection.prepareStatement("SELECT * FROM card WHERE fk_uid = ? AND in_deck = true");
+        statement.setInt(1, user.getId());
+        ResultSet resultSet = statement.executeQuery();
+        while(resultSet.next()) {
+            cards.add(new CardInfoUser(
+                    resultSet.getString(1),
+                    resultSet.getString(2),
+                    resultSet.getInt(3)
+            ));
+        }
+        return cards;
+    }
+
+    public void clearDeck(User user) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement("UPDATE card SET in_deck = false WHERE fk_uid = ?");
+        statement.setInt(1, user.getId());
+        statement.execute();
+    }
+
+    public void putCardInDeck(String card, User user) throws SQLException {
+        PreparedStatement statement = connection.prepareStatement("UPDATE card SET in_deck = true WHERE cid = ? AND fk_uid = ?");
+        statement.setString(1, card);
+        statement.setInt(2, user.getId());
+        statement.execute();
+    }
 }

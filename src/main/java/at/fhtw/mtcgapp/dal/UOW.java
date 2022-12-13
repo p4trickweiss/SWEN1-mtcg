@@ -7,11 +7,15 @@ public class UOW {
     private final Connection connection;
 
     public UOW() {
-        this.connection = Singleton.INSTANCE.getConnection();
+        this.connection = DbSingleton.INSTANCE.getConnection();
     }
 
     public Connection getConnection() {
         return connection;
+    }
+
+    public void commit() {
+        
     }
 }
 
