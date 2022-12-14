@@ -1,97 +1,123 @@
 package at.fhtw.mtcgapp.dal.repos;
 
+import at.fhtw.mtcgapp.dal.DataAccessException;
+import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.model.Package;
 import at.fhtw.mtcgapp.model.User;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 
 public class UserRepo {
 
-    private final Connection connection;
-    private List<User> userData;
+    private final UOW uow;
 
-    public UserRepo(Connection connection) { this.connection = connection;}
+    public UserRepo(UOW uow) {
+        this.uow = uow;
+    }
 
-    public User getUserByUsername(String username) throws SQLException {
+    public User getUserByUsername(String username) throws DataAccessException {
         User user = null;
-        PreparedStatement statement = connection.prepareStatement("SELECT * FROM \"user\" WHERE username = ?");
-        statement.setString(1, username);
-        ResultSet resultSet = statement.executeQuery();
-        if(resultSet.next()) {
-            user = new User(
-                    resultSet.getInt(1),
-                    resultSet.getString(2),
-                    resultSet.getString(3),
-                    resultSet.getString(4),
-                    resultSet.getString(5),
-                    resultSet.getString(6),
-                    resultSet.getString(7),
-                    resultSet.getInt(8));
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT * FROM \"user\" WHERE username = ?")) {
+            preparedStatement.setString(1, username);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if(resultSet.next()) {
+                user = new User(
+                        resultSet.getInt(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3),
+                        resultSet.getString(4),
+                        resultSet.getString(5),
+                        resultSet.getString(6),
+                        resultSet.getString(7),
+                        resultSet.getInt(8));
+            }
+            return user;
         }
-        return user;
+        catch (SQLException sqlException) {
+            throw new DataAccessException("getUserByUsername error");
+        }
     }
 
-    public User getUserByToken(String token) throws SQLException {
+    public User getUserByToken(String token) throws DataAccessException {
         User user = null;
-        PreparedStatement statement = connection.prepareStatement("SELECT * FROM \"user\" WHERE token = ?");
-        statement.setString(1, token);
-        ResultSet resultSet = statement.executeQuery();
-        if(resultSet.next()) {
-            user = new User(
-                    resultSet.getInt(1),
-                    resultSet.getString(2),
-                    resultSet.getString(3),
-                    resultSet.getString(4),
-                    resultSet.getString(5),
-                    resultSet.getString(6),
-                    resultSet.getString(7),
-                    resultSet.getInt(8));
+        try (PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT * FROM \"user\" WHERE token = ?")) {
+            preparedStatement.setString(1, token);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                user = new User(
+                        resultSet.getInt(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3),
+                        resultSet.getString(4),
+                        resultSet.getString(5),
+                        resultSet.getString(6),
+                        resultSet.getString(7),
+                        resultSet.getInt(8));
+            }
+            return user;
+        } catch (SQLException sqlException) {
+            throw new DataAccessException("getUserByToken error");
         }
-        return user;
     }
 
-    public void createUser(User user) throws SQLException {
-        PreparedStatement statement = connection.prepareStatement("INSERT INTO \"user\" (username, password) VALUES (?, ?)");
-        statement.setString(1, user.getUsername());
-        statement.setString(2, user.getPassword());
-        statement.execute();
+    public void createUser(User user) throws DataAccessException {
+        try (PreparedStatement preparedStatement = this.uow.prepareStatement("INSERT INTO \"user\" (username, password) VALUES (?, ?)")) {
+            preparedStatement.setString(1, user.getUsername());
+            preparedStatement.setString(2, user.getPassword());
+            preparedStatement.execute();
+        } catch (SQLException sqlException) {
+            if(sqlException.getErrorCode() == 0) {
+                throw new DataAccessException("User already exists");
+            }
+            throw new DataAccessException("createUser error");
+        }
     }
 
-    public void setToken(User user) throws SQLException {
-        PreparedStatement statement = connection.prepareStatement("UPDATE \"user\" SET token = ? WHERE username = ?");
-        statement.setString(1, user.getToken());
-        statement.setString(2, user.getUsername());
-        statement.execute();
-    }
+    public void setToken(User user) throws DataAccessException{
+            try (PreparedStatement preparedStatement = this.uow.prepareStatement("UPDATE \"user\" SET token = ? WHERE username = ?")) {
+                preparedStatement.setString(1, user.getToken());
+                preparedStatement.setString(2, user.getUsername());
+                preparedStatement.execute();
+            } catch (SQLException sqlException) {
+                throw new DataAccessException("setToken error");
+            }
+        }
 
-    public String getToken(User user) throws SQLException {
+    public String getToken(User user) throws DataAccessException {
         String token = null;
-        PreparedStatement statement = connection.prepareStatement("SELECT token FROM  \"user\" WHERE username = ?");
-        statement.setString(1, user.getUsername());
-        ResultSet resultSet = statement.executeQuery();
-        if(resultSet.next()){
-            token = resultSet.getString(1);
+        try (PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT token FROM  \"user\" WHERE username = ?")) {
+            preparedStatement.setString(1, user.getUsername());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                token = resultSet.getString(1);
+            }
+            return token;
+        } catch (SQLException sqlException) {
+            throw new DataAccessException("getToken error");
         }
-        return token;
     }
 
-    public void updateUser(User user) throws SQLException {
-        PreparedStatement statement = connection.prepareStatement("UPDATE \"user\" SET name = ?, bio = ?, image = ? WHERE username = ?");
-        statement.setString(1, user.getName());
-        statement.setString(2, user.getBio());
-        statement.setString(3, user.getImage());
-        statement.setString(4, user.getUsername());
-        statement.execute();
+    public void updateUser(User user) throws DataAccessException {
+        try (PreparedStatement preparedStatement = this.uow.prepareStatement("UPDATE \"user\" SET name = ?, bio = ?, image = ? WHERE username = ?")) {
+            preparedStatement.setString(1, user.getName());
+            preparedStatement.setString(2, user.getBio());
+            preparedStatement.setString(3, user.getImage());
+            preparedStatement.setString(4, user.getUsername());
+            preparedStatement.execute();
+        } catch (SQLException sqlException) {
+            throw new DataAccessException("updateUser error");
+        }
     }
 
-    public void payPackage(Package cardPackage, User user) throws SQLException {
-        PreparedStatement statement = connection.prepareStatement("UPDATE \"user\" SET coins = coins - (SELECT price FROM package WHERE pid = ?) WHERE username = ?");
-        statement.setInt(1, cardPackage.getPid());
-        statement.setString(2, user.getUsername());
-        statement.execute();
+    public void payPackage(Package cardPackage, User user) throws DataAccessException {
+        try (PreparedStatement preparedStatement = this.uow.prepareStatement("UPDATE \"user\" SET coins = coins - (SELECT price FROM package WHERE pid = ?) WHERE username = ?")) {
+            preparedStatement.setInt(1, cardPackage.getPid());
+            preparedStatement.setString(2, user.getUsername());
+            preparedStatement.execute();
+        } catch (SQLException sqlException) {
+            throw new DataAccessException("payPackage error");
+        }
     }
 }

@@ -5,12 +5,11 @@ import at.fhtw.httpserver.http.HttpStatus;
 import at.fhtw.httpserver.server.Request;
 import at.fhtw.httpserver.server.Response;
 import at.fhtw.mtcgapp.controller.Controller;
+import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
 import at.fhtw.mtcgapp.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
-
-import java.sql.SQLException;
 
 public class SessionsController extends Controller {
 
@@ -18,39 +17,35 @@ public class SessionsController extends Controller {
 
     public Response logIn(Request request) {
         UOW uow = new UOW();
+
         try {
             User user = this.getObjectMapper().readValue(request.getBody(), User.class);
             try {
-                UserRepo userRepo = new UserRepo(uow.getConnection());
-                uow.getConnection().setAutoCommit(false);
+                UserRepo userRepo = new UserRepo(uow);
                 User userCredentials = userRepo.getUserByUsername(user.getUsername());
                 if(userCredentials != null && user.getUsername().equals(userCredentials.getUsername()) && user.getPassword().equals(userCredentials.getPassword())){
                     user.setToken(user.getUsername() + "-mtcgToken");
                     userRepo.setToken(user);
                     user.setToken(userRepo.getToken(user));
                 } else {
-                    uow.getConnection().commit();
+                    uow.commitTransaction();
                     return new Response(
                             HttpStatus.UNAUTHORIZED,
                             ContentType.JSON,
                             "{ \"message\" : \"Invalid username/password\" }"
                     );
                 }
-               uow.getConnection().commit();
+                uow.commitTransaction();
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
                         user.getToken()
                 );
-            } catch (SQLException sqlException)  {
-                if (uow.getConnection() != null) {
-                    try {
-                        System.err.print("Transaction is being rolled back");
-                        uow.getConnection().rollback();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
+            } catch (DataAccessException dataAccessException)  {
+                uow.rollbackTransaction();
+            }
+            finally {
+                uow.finishWork();
             }
 
         } catch (JsonProcessingException e) {
