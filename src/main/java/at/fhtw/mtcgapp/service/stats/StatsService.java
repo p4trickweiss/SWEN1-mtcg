@@ -9,7 +9,7 @@ import at.fhtw.httpserver.server.Service;
 
 public class StatsService implements Service {
 
-    private StatsContoller statsContoller;
+    private final StatsContoller statsContoller;
 
     public StatsService(StatsContoller statsContoller) {
         this.statsContoller = statsContoller;
