@@ -20,13 +20,14 @@ public class User {
     private String image;
     @JsonAlias({"Coins"})
     private int coins;
+    @JsonAlias({"Elo"})
+    private int elo;
+    @JsonAlias({"Wins"})
+    private int wins;
+    @JsonAlias({"Losses"})
+    private int losses;
 
     public User(){}
-    public User(Integer id, String username, String password) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
-    }
 
     public User(Integer id, String username, String password, String token, String name, String bio, String image, int coins) {
         this.id = id;
@@ -37,6 +38,20 @@ public class User {
         this.bio = bio;
         this.image = image;
         this.coins = coins;
+    }
+
+    public User(Integer id, String username, String password, String token, String name, String bio, String image, int coins, int elo, int wins, int losses) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.token = token;
+        this.name = name;
+        this.bio = bio;
+        this.image = image;
+        this.coins = coins;
+        this.elo = elo;
+        this.wins = wins;
+        this.losses = losses;
     }
 
     public Integer getId() {
@@ -101,5 +116,29 @@ public class User {
 
     public void setCoins(int coins) {
         this.coins = coins;
+    }
+
+    public int getElo() {
+        return elo;
+    }
+
+    public void setElo(int elo) {
+        this.elo = elo;
+    }
+
+    public int getWins() {
+        return wins;
+    }
+
+    public void setWins(int wins) {
+        this.wins = wins;
+    }
+
+    public int getLosses() {
+        return losses;
+    }
+
+    public void setLosses(int losses) {
+        this.losses = losses;
     }
 }
