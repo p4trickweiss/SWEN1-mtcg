@@ -18,10 +18,6 @@ public class UOW {
         }
     }
 
-    public Connection getConnection() {
-        return connection;
-    }
-
     public void commitTransaction()
     {
         if (this.connection != null) {

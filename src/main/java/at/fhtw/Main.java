@@ -2,7 +2,6 @@ package at.fhtw;
 
 import at.fhtw.httpserver.server.Server;
 import at.fhtw.httpserver.utils.Router;
-import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.service.cards.CardsController;
 import at.fhtw.mtcgapp.service.cards.CardsService;
 import at.fhtw.mtcgapp.service.deck.DeckController;

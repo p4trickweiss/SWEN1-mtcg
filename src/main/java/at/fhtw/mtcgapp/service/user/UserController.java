@@ -5,12 +5,11 @@ import at.fhtw.httpserver.http.HttpStatus;
 import at.fhtw.httpserver.server.Request;
 import at.fhtw.httpserver.server.Response;
 import at.fhtw.mtcgapp.controller.Controller;
+import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
 import at.fhtw.mtcgapp.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
-
-import java.sql.SQLException;
 
 public class UserController extends Controller {
 
@@ -20,35 +19,28 @@ public class UserController extends Controller {
         UOW uow = new UOW();
         try {
             User user = this.getObjectMapper().readValue(request.getBody(), User.class);
+            UserRepo userRepo = new UserRepo(uow);
             try {
-                UserRepo userRepo = new UserRepo(uow.getConnection());
-                uow.getConnection().setAutoCommit(false);
-
                 userRepo.createUser(user);
-                uow.getConnection().commit();
+                uow.commitTransaction();
                 return new Response(
                         HttpStatus.CREATED,
                         ContentType.JSON,
                         "{ message : \"Success\" }"
                 );
-
-            } catch (SQLException sqlException) {
-                if (uow.getConnection() != null) {
-                    try {
-                        System.err.print("Transaction is being rolled back");
-                        uow.getConnection().rollback();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                if(sqlException.getErrorCode() == 0) {
+            }
+            catch(DataAccessException dataAccessException) {
+                uow.rollbackTransaction();
+                if(dataAccessException.getMessage().equals("User already exists")) {
                     return new Response(
                             HttpStatus.CONFLICT,
                             ContentType.JSON,
                             "{ message : \"User already exists\" }"
                     );
                 }
+            }
+            finally {
+                uow.finishWork();
             }
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -65,13 +57,12 @@ public class UserController extends Controller {
         String token = request.getToken();
         String userToSearch = request.getPathParts().get(1);
         UOW uow = new UOW();
-        try {
-            UserRepo userRepo = new UserRepo(uow.getConnection());
-            uow.getConnection().setAutoCommit(false);
 
+        try {
+            UserRepo userRepo = new UserRepo(uow);
             User user = userRepo.getUserByUsername(userToSearch);
             if(user == null) {
-                uow.getConnection().commit();
+                uow.commitTransaction();
                 return new Response(
                         HttpStatus.NOT_FOUND,
                         ContentType.JSON,
@@ -80,7 +71,7 @@ public class UserController extends Controller {
             }
 
             if(token.equals("admin-mtcgToken") || token.equals(user.getToken())) {
-                uow.getConnection().commit();
+                uow.commitTransaction();
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
@@ -89,14 +80,19 @@ public class UserController extends Controller {
                                 "\", \"Image\" : \"" + user.getImage() + "\" }"
                 );
             }
-            uow.getConnection().commit();
+
+            uow.commitTransaction();
             return new Response(
                     HttpStatus.UNAUTHORIZED,
                     ContentType.JSON,
                     "{\"message\" : \"Authentication information is missing or invalid\" }"
             );
-        } catch (SQLException sqlException) {
-            sqlException.printStackTrace();
+        }
+        catch (DataAccessException dataAccessException) {
+            uow.rollbackTransaction();
+        }
+        finally {
+            uow.finishWork();
         }
 
         return new Response(
@@ -111,14 +107,14 @@ public class UserController extends Controller {
         User userToModify = new User();
         userToModify.setUsername(request.getPathParts().get(1));
         UOW uow = new UOW();
+
         try {
             User userData = this.getObjectMapper().readValue(request.getBody(), User.class);
             try{
-                UserRepo userRepo = new UserRepo(uow.getConnection());
-                uow.getConnection().setAutoCommit(false);
+                UserRepo userRepo = new UserRepo(uow);
 
                 if(userRepo.getUserByUsername(userToModify.getUsername()) == null) {
-                    uow.getConnection().commit();
+                    uow.commitTransaction();
                     return new Response(
                             HttpStatus.NOT_FOUND,
                             ContentType.JSON,
@@ -130,29 +126,24 @@ public class UserController extends Controller {
                 if(token.equals("admin-mtcgToken") || token.equals(userToModify.getToken())) {
                     userData.setUsername(userToModify.getUsername());
                     userRepo.updateUser(userData);
-                    uow.getConnection().commit();
+                    uow.commitTransaction();
                     return new Response(
                             HttpStatus.OK,
                             ContentType.JSON,
                             "{\"message\" : \"User updated\" }"
                     );
                 }
-                uow.getConnection().commit();
+                uow.commitTransaction();
                 return new Response(
                         HttpStatus.UNAUTHORIZED,
                         ContentType.JSON,
                         "{\"message\" : \"Authentication information is missing or invalid\" }"
                 );
-            } catch (SQLException sqlException) {
-                sqlException.printStackTrace();
-                if (uow.getConnection() != null) {
-                    try {
-                        System.err.print("Transaction is being rolled back");
-                        uow.getConnection().rollback();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
+            } catch (DataAccessException dataAccessException) {
+                uow.rollbackTransaction();
+            }
+            finally {
+                uow.finishWork();
             }
         } catch (JsonProcessingException e) {
             e.printStackTrace();
