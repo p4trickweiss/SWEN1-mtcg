@@ -3,11 +3,14 @@ package at.fhtw.mtcgapp.dal.repos;
 import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.model.Package;
+import at.fhtw.mtcgapp.model.Stats;
 import at.fhtw.mtcgapp.model.User;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserRepo {
 
@@ -121,6 +124,25 @@ public class UserRepo {
             preparedStatement.execute();
         } catch (SQLException sqlException) {
             throw new DataAccessException("payPackage error");
+        }
+    }
+
+    public List<Stats> getSortedScoreboard() throws DataAccessException {
+        List<Stats> userStats = new ArrayList<>();
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT name, elo, wins, losses FROM \"user\" ORDER BY elo DESC")) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while(resultSet.next()) {
+                userStats.add(new Stats(
+                        resultSet.getString(1),
+                        resultSet.getInt(2),
+                        resultSet.getInt(3),
+                        resultSet.getInt(4))
+                );
+            }
+            return userStats;
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("getUnsortedScoreboard error");
         }
     }
 }

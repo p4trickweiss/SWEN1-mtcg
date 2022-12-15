@@ -9,6 +9,8 @@ import at.fhtw.mtcgapp.service.deck.DeckService;
 import at.fhtw.mtcgapp.service.echo.EchoService;
 import at.fhtw.mtcgapp.service.packages.PackagesController;
 import at.fhtw.mtcgapp.service.packages.PackagesService;
+import at.fhtw.mtcgapp.service.scoreboard.ScoreboardController;
+import at.fhtw.mtcgapp.service.scoreboard.ScoreboardService;
 import at.fhtw.mtcgapp.service.sessions.SessionsController;
 import at.fhtw.mtcgapp.service.sessions.SessionsService;
 import at.fhtw.mtcgapp.service.stats.StatsContoller;
@@ -40,6 +42,7 @@ public class Main {
         router.addService("/cards", new CardsService(new CardsController()));
         router.addService("/deck", new DeckService(new DeckController()));
         router.addService("/stats", new StatsService(new StatsContoller()));
+        router.addService("/score", new ScoreboardService(new ScoreboardController()));
         return router;
     }
 }
