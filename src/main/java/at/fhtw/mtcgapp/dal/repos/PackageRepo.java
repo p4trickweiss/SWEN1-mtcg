@@ -158,4 +158,34 @@ public class PackageRepo {
             throw new DataAccessException("putCardInDeck error");
         }
     }
+
+    public void lockCard(String cid) throws DataAccessException {
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("UPDATE card SET is_locked = true WHERE cid = ?")) {
+            preparedStatement.setString(1, cid);
+            preparedStatement.execute();
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("lockCardError");
+        }
+    }
+
+    public boolean checkCardIsEnabledToTrade(String cid) throws DataAccessException {
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT is_locked, in_deck FROM card WHERE cid = ?")) {
+            preparedStatement.setString(1, cid);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            boolean isAvailable = false;
+            if(resultSet.next()) {
+                boolean isLocked = resultSet.getBoolean(1);
+                boolean inDeck = resultSet.getBoolean(2);
+                if (!isLocked && !inDeck) {
+                    isAvailable = true;
+                }
+
+            }
+            return isAvailable;
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("checkCardIsLocked error");
+        }
+    }
 }

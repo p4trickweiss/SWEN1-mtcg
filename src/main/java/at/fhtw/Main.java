@@ -15,6 +15,8 @@ import at.fhtw.mtcgapp.service.sessions.SessionsController;
 import at.fhtw.mtcgapp.service.sessions.SessionsService;
 import at.fhtw.mtcgapp.service.stats.StatsContoller;
 import at.fhtw.mtcgapp.service.stats.StatsService;
+import at.fhtw.mtcgapp.service.tradings.TradingsController;
+import at.fhtw.mtcgapp.service.tradings.TradingsService;
 import at.fhtw.mtcgapp.service.transactions.TransactionsController;
 import at.fhtw.mtcgapp.service.transactions.TransactionsService;
 import at.fhtw.mtcgapp.service.user.UserController;
@@ -43,6 +45,7 @@ public class Main {
         router.addService("/deck", new DeckService(new DeckController()));
         router.addService("/stats", new StatsService(new StatsContoller()));
         router.addService("/score", new ScoreboardService(new ScoreboardController()));
+        router.addService("/tradings", new TradingsService(new TradingsController()));
         return router;
     }
 }

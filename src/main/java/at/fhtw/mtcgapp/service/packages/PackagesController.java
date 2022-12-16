@@ -14,7 +14,6 @@ import at.fhtw.mtcgapp.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PackagesController extends Controller {
@@ -25,8 +24,7 @@ public class PackagesController extends Controller {
         UOW uow = new UOW();
 
         try {
-            List<Card> cards = new ArrayList<>();
-            cards = this.getObjectMapper().readValue(request.getBody(), new TypeReference<List<Card>>() {});
+            List<Card> cards = this.getObjectMapper().readValue(request.getBody(), new TypeReference<List<Card>>() {});
             try {
                 PackageRepo packageRepo  = new PackageRepo(uow);
                 UserRepo userRepo = new UserRepo(uow);
