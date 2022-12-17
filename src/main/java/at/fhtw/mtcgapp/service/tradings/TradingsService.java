@@ -23,6 +23,9 @@ public class TradingsService implements Service {
         if(request.getMethod() == Method.POST) {
             return this.tradingsController.createTradingDeal(request);
         }
+        if(request.getMethod() == Method.DELETE) {
+            return this.tradingsController.deleteTradingDeal(request);
+        }
 
         return new Response(
                 HttpStatus.BAD_REQUEST,

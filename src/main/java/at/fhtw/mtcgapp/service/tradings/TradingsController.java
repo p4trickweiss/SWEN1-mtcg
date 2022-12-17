@@ -132,4 +132,60 @@ public class TradingsController extends Controller {
                 "{\"message\" : \"Internal Server Error\" }"
         );
     }
+
+    public Response deleteTradingDeal(Request request) {
+        UOW uow = new UOW();
+        String token = request.getToken();
+        try {
+            UserRepo userRepo = new UserRepo(uow);
+            User user = userRepo.getUserByToken(token);
+
+            if(user == null) {
+                uow.commitTransaction();
+                return new Response(HttpStatus.UNAUTHORIZED,
+                        ContentType.JSON,
+                        "{ \"message\" : \"Authentication information is missing or invalid\" }"
+                );
+            }
+
+            String dealToDelete = request.getPathParts().get(1);
+            TradingRepo tradingRepo = new TradingRepo(uow);
+            TradingDeal tradingDeal = tradingRepo.getTradingDealById(dealToDelete);
+            if(tradingDeal == null) {
+                uow.commitTransaction();
+                return new Response(HttpStatus.NOT_FOUND,
+                        ContentType.JSON,
+                        "{ \"message\" : \"The provided deal ID was not found.\" }"
+                );
+            }
+
+            if(!tradingRepo.checkCardBelongsToUser(user, tradingDeal)) {
+                uow.commitTransaction();
+                return new Response(HttpStatus.FORBIDDEN,
+                        ContentType.JSON,
+                        "{ \"message\" : \"The deal contains a card that is not owned by the user.\" }"
+                );
+            }
+
+            tradingRepo.deleteTradingDealById(tradingDeal.getId());
+            tradingRepo.unlockCardById(tradingDeal.getCardToTrade());
+            uow.commitTransaction();
+            return new Response(HttpStatus.OK,
+                    ContentType.JSON,
+                    "{ \"message\" : \"Trading deal successfully deleted\" }"
+            );
+        }
+        catch (DataAccessException dataAccessException) {
+            uow.rollbackTransaction();
+        }
+        finally {
+            uow.finishWork();
+        }
+
+        return new Response(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ContentType.JSON,
+                "{\"message\" : \"Internal Server Error\" }"
+        );
+    }
 }
