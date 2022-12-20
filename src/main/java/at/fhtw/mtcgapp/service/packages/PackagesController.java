@@ -7,6 +7,7 @@ import at.fhtw.httpserver.server.Response;
 import at.fhtw.mtcgapp.controller.Controller;
 import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
+import at.fhtw.mtcgapp.dal.repos.CardRepo;
 import at.fhtw.mtcgapp.dal.repos.PackageRepo;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
 import at.fhtw.mtcgapp.model.Card;
@@ -14,7 +15,6 @@ import at.fhtw.mtcgapp.model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PackagesController extends Controller {
@@ -25,11 +25,11 @@ public class PackagesController extends Controller {
         UOW uow = new UOW();
 
         try {
-            List<Card> cards = new ArrayList<>();
-            cards = this.getObjectMapper().readValue(request.getBody(), new TypeReference<List<Card>>() {});
+            List<Card> cards = this.getObjectMapper().readValue(request.getBody(), new TypeReference<>() {});
             try {
-                PackageRepo packageRepo  = new PackageRepo(uow);
                 UserRepo userRepo = new UserRepo(uow);
+                PackageRepo packageRepo  = new PackageRepo(uow);
+                CardRepo cardRepo = new CardRepo(uow);
                 User user = userRepo.getUserByToken(token);
 
                 if(user == null) {
@@ -51,7 +51,7 @@ public class PackagesController extends Controller {
                 int packageId = packageRepo.createPackageAndGetId();
                 for (Card card : cards) {
                     card.setFk_pid(packageId);
-                    packageRepo.createCard(card);
+                    cardRepo.createCard(card);
                 }
                 uow.commitTransaction();
                 return new Response(HttpStatus.CREATED,

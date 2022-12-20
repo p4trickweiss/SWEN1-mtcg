@@ -103,8 +103,16 @@ public class Request {
     }
 
     public String getToken() {
+        if(this.getHeaderMap().getHeader("Authorization").isEmpty()) {
+            return " ";
+        }
         String token = this.getHeaderMap().getHeader("Authorization");
-        token = token.split(" ")[1];
-        return token;
+        String[] auth = token.split(" ");
+        for (String t : auth) {
+            if(t.contains("mtcgToken")) {
+                return t;
+            }
+        }
+        return " ";
     }
 }

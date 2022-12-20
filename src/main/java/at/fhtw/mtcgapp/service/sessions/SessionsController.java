@@ -38,7 +38,7 @@ public class SessionsController extends Controller {
                 uow.commitTransaction();
                 return new Response(
                         HttpStatus.OK,
-                        ContentType.JSON,
+                        ContentType.PLAIN_TEXT,
                         user.getToken()
                 );
             } catch (DataAccessException dataAccessException)  {

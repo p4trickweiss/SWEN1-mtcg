@@ -1,8 +1,8 @@
-package at.fhtw.mtcgapp.model;
+package at.fhtw.mtcgapp.model.userview;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 
-public class Stats {
+public class StatsUserView {
 
     @JsonAlias({"Name"})
     private String name;
@@ -13,10 +13,10 @@ public class Stats {
     @JsonAlias({"Losses"})
     private int losses;
 
-    public Stats() {
+    public StatsUserView() {
     }
 
-    public Stats(String name, int elo, int wins, int losses) {
+    public StatsUserView(String name, int elo, int wins, int losses) {
         this.name = name;
         Elo = elo;
         this.wins = wins;

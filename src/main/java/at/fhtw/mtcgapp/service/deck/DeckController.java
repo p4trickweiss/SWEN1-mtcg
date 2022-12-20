@@ -7,9 +7,9 @@ import at.fhtw.httpserver.server.Response;
 import at.fhtw.mtcgapp.controller.Controller;
 import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
-import at.fhtw.mtcgapp.dal.repos.PackageRepo;
+import at.fhtw.mtcgapp.dal.repos.CardRepo;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
-import at.fhtw.mtcgapp.model.CardInfoUser;
+import at.fhtw.mtcgapp.model.userview.CardUserView;
 import at.fhtw.mtcgapp.model.User;
 import com.fasterxml.jackson.core.JacksonException;
 
@@ -27,7 +27,7 @@ public class DeckController extends Controller {
 
         try {
             UserRepo userRepo = new UserRepo(uow);
-            PackageRepo packageRepo = new PackageRepo(uow);
+            CardRepo cardRepo = new CardRepo(uow);
 
             User user = userRepo.getUserByToken(token);
             if(user == null) {
@@ -38,7 +38,7 @@ public class DeckController extends Controller {
                 );
             }
 
-            List<CardInfoUser> cards = packageRepo.getCardsInDeck(user);
+            List<CardUserView> cards = cardRepo.getCardsInDeck(user);
             if(cards.isEmpty()) {
                 uow.commitTransaction();
                 return new Response(HttpStatus.NO_CONTENT,
@@ -78,7 +78,7 @@ public class DeckController extends Controller {
 
         try {
             UserRepo userRepo = new UserRepo(uow);
-            PackageRepo packageRepo = new PackageRepo(uow);
+            CardRepo cardRepo = new CardRepo(uow);
 
             User user = userRepo.getUserByToken(token);
             if(user == null) {
@@ -104,9 +104,9 @@ public class DeckController extends Controller {
                 );
             }
 
-            packageRepo.clearDeck(user);
+            cardRepo.clearDeck(user);
             for (String card : list) {
-                packageRepo.putCardInDeck(card, user);
+                cardRepo.putCardInDeck(card, user);
             }
             uow.commitTransaction();
             return new Response(HttpStatus.OK,

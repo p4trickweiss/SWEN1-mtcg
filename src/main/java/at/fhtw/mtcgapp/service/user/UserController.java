@@ -9,6 +9,8 @@ import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
 import at.fhtw.mtcgapp.model.User;
+import at.fhtw.mtcgapp.model.userview.UserDataUserView;
+import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class UserController extends Controller {
@@ -71,13 +73,18 @@ public class UserController extends Controller {
             }
 
             if(token.equals("admin-mtcgToken") || token.equals(user.getToken())) {
+                UserDataUserView userData = new UserDataUserView(user.getName(), user.getBio(), user.getImage());
+                String json = null;
+                try {
+                    json = this.getObjectMapper().writeValueAsString(userData);
+                } catch (JacksonException e) {
+                    e.printStackTrace();
+                }
                 uow.commitTransaction();
                 return new Response(
                         HttpStatus.OK,
                         ContentType.JSON,
-                        "{ \"Name\" : \"" + user.getName() +
-                                "\", \"Bio\" : \"" + user.getBio() +
-                                "\", \"Image\" : \"" + user.getImage() + "\" }"
+                        json
                 );
             }
 

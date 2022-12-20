@@ -9,6 +9,8 @@ import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
 import at.fhtw.mtcgapp.model.User;
+import at.fhtw.mtcgapp.model.userview.StatsUserView;
+import com.fasterxml.jackson.core.JacksonException;
 
 public class StatsContoller extends Controller {
 
@@ -31,13 +33,17 @@ public class StatsContoller extends Controller {
                 );
             }
 
+            StatsUserView stats = new StatsUserView(user.getName(), user.getElo(), user.getWins(), user.getLosses());
+            String json = null;
+            try {
+                json = this.getObjectMapper().writeValueAsString(stats);
+            } catch (JacksonException e) {
+                e.printStackTrace();
+            }
             uow.commitTransaction();
             return new Response(HttpStatus.OK,
                                 ContentType.JSON,
-                                "{ \"Name\" : \"" + user.getName() + "\"," +
-                                        "\"Elo\" : \"" + user.getElo() + "\"," +
-                                        "\"Wins\" : \"" + user.getWins() + "\"," +
-                                        "\"Losses\" : \"" + user.getLosses() + "\"}"
+                                json
             );
         }
         catch(DataAccessException dataAccessException) {

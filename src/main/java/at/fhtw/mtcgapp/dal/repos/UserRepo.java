@@ -3,7 +3,7 @@ package at.fhtw.mtcgapp.dal.repos;
 import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.model.Package;
-import at.fhtw.mtcgapp.model.Stats;
+import at.fhtw.mtcgapp.model.userview.StatsUserView;
 import at.fhtw.mtcgapp.model.User;
 
 import java.sql.PreparedStatement;
@@ -18,6 +18,29 @@ public class UserRepo {
 
     public UserRepo(UOW uow) {
         this.uow = uow;
+    }
+
+    public User getUserById(int id) throws DataAccessException {
+        User user = null;
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT * FROM \"user\" WHERE uid = ?")) {
+            preparedStatement.setInt(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if(resultSet.next()) {
+                user = new User(
+                        resultSet.getInt(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3),
+                        resultSet.getString(4),
+                        resultSet.getString(5),
+                        resultSet.getString(6),
+                        resultSet.getString(7),
+                        resultSet.getInt(8));
+            }
+            return user;
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("getUserByUsername error");
+        }
     }
 
     public User getUserByUsername(String username) throws DataAccessException {
@@ -127,12 +150,12 @@ public class UserRepo {
         }
     }
 
-    public List<Stats> getSortedScoreboard() throws DataAccessException {
-        List<Stats> userStats = new ArrayList<>();
+    public List<StatsUserView> getSortedScoreboard() throws DataAccessException {
+        List<StatsUserView> userStats = new ArrayList<>();
         try(PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT name, elo, wins, losses FROM \"user\" ORDER BY elo DESC")) {
             ResultSet resultSet = preparedStatement.executeQuery();
             while(resultSet.next()) {
-                userStats.add(new Stats(
+                userStats.add(new StatsUserView(
                         resultSet.getString(1),
                         resultSet.getInt(2),
                         resultSet.getInt(3),
