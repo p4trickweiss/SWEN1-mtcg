@@ -27,8 +27,9 @@ public class StoreRepo {
                 deals.add(new TradingDeal(
                         resultSet.getString(1),
                         resultSet.getString(2),
+                        resultSet.getInt(3),
                         resultSet.getString(4),
-                        resultSet.getInt(3))
+                        resultSet.getInt(5))
                 );
             }
             return deals;
@@ -65,8 +66,9 @@ public class StoreRepo {
                 tradingDeal = new TradingDeal(
                         resultSet.getString(1),
                         resultSet.getString(2),
+                        resultSet.getInt(3),
                         resultSet.getString(4),
-                        resultSet.getInt(3)
+                        resultSet.getInt(5)
                 );
             }
             return tradingDeal;

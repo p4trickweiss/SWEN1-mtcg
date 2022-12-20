@@ -7,28 +7,21 @@ public class TradingDeal {
     private String id;
     @JsonAlias({"CardToTrade"})
     private String cardToTrade;
-    @JsonAlias({"Type"})
-    private String type;
     @JsonAlias({"MinimumDamage"})
     private int minimumDamage;
+    @JsonAlias({"Type"})
+    private String type;
     @JsonAlias({"fkUid"})
     private int fkUid;
 
     public TradingDeal() {
     }
 
-    public TradingDeal(String id, String cardToTrade, String type, int minimumDamage) {
+    public TradingDeal(String id, String cardToTrade, int minimumDamage, String type, int fkUid) {
         this.id = id;
         this.cardToTrade = cardToTrade;
-        this.type = type;
         this.minimumDamage = minimumDamage;
-    }
-
-    public TradingDeal(String id, String cardToTrade, String type, int minimumDamage, int fkUid) {
-        this.id = id;
-        this.cardToTrade = cardToTrade;
         this.type = type;
-        this.minimumDamage = minimumDamage;
         this.fkUid = fkUid;
     }
 

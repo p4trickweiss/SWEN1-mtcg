@@ -20,6 +20,29 @@ public class UserRepo {
         this.uow = uow;
     }
 
+    public User getUserById(int id) throws DataAccessException {
+        User user = null;
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT * FROM \"user\" WHERE uid = ?")) {
+            preparedStatement.setInt(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if(resultSet.next()) {
+                user = new User(
+                        resultSet.getInt(1),
+                        resultSet.getString(2),
+                        resultSet.getString(3),
+                        resultSet.getString(4),
+                        resultSet.getString(5),
+                        resultSet.getString(6),
+                        resultSet.getString(7),
+                        resultSet.getInt(8));
+            }
+            return user;
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("getUserByUsername error");
+        }
+    }
+
     public User getUserByUsername(String username) throws DataAccessException {
         User user = null;
         try(PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT * FROM \"user\" WHERE username = ?")) {

@@ -223,18 +223,24 @@ public class TradingsController extends Controller {
             if(cardToTrade == null ||
                     cardToTrade.isIn_deck() ||
                     cardToTrade.isIs_locked() ||
-                    cardToTrade.getDamage() < tradingDeal.getMinimumDamage()
-                    || !cardToTrade.getType().equals(tradingDeal.getType())) {
+                    (cardToTrade.getDamage() < tradingDeal.getMinimumDamage()) ||
+                    //!cardToTrade.getType().equals(tradingDeal.getType()) ||
+                    tradingDeal.getFkUid() == user.getId()) {
                 uow.commitTransaction();
                 return new Response(HttpStatus.FORBIDDEN,
                         ContentType.JSON,
-                        "{ \"message\" : \"The offered card is not owned by the user, or the requirements are not met (Type, MinimumDamage), or the offered card is locked in the deck.\" }"
+                        "{ \"message\" : \"The offered card is not owned by the user, or the requirements are not met (Type, MinimumDamage), or the offered card is locked in the deck, or you tried to trade with yourself.\" }"
                 );
             }
 
-            //packageRepo.updateCardOwnerById();
-            //packageRepo.updateCardOwnerById();
-            //tradingRepo.deleteTradingDealById();
+            System.out.println(tradingDeal.getFkUid());
+            User provider = userRepo.getUserById(tradingDeal.getFkUid());
+            System.out.println(provider.toString());
+            cardRepo.updateCardOwnerById(provider.getId(), tradingDeal.getCardToTrade());
+            tradingRepo.unlockCardById(tradingDeal.getCardToTrade());
+            cardRepo.updateCardOwnerById(user.getId(), cardToTrade.getCid());
+            tradingRepo.unlockCardById(cardToTrade.getCid());
+            tradingRepo.deleteTradingDealById(tradingDeal.getId());
 
             uow.commitTransaction();
             return new Response(HttpStatus.OK,
@@ -243,6 +249,7 @@ public class TradingsController extends Controller {
             );
         }
         catch (DataAccessException dataAccessException) {
+            System.out.println("error");
             uow.rollbackTransaction();
         }
         finally {

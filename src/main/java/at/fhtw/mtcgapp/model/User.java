@@ -141,4 +141,21 @@ public class User {
     public void setLosses(int losses) {
         this.losses = losses;
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", token='" + token + '\'' +
+                ", name='" + name + '\'' +
+                ", bio='" + bio + '\'' +
+                ", image='" + image + '\'' +
+                ", coins=" + coins +
+                ", elo=" + elo +
+                ", wins=" + wins +
+                ", losses=" + losses +
+                '}';
+    }
 }
