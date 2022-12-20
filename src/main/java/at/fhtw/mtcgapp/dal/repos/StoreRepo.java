@@ -11,11 +11,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TradingRepo {
+public class StoreRepo {
 
     private final UOW uow;
 
-    public TradingRepo(UOW uow) {
+    public StoreRepo(UOW uow) {
         this.uow = uow;
     }
 

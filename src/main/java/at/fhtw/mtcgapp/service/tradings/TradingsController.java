@@ -8,9 +8,10 @@ import at.fhtw.mtcgapp.controller.Controller;
 import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.PackageRepo;
-import at.fhtw.mtcgapp.dal.repos.TradingRepo;
+import at.fhtw.mtcgapp.dal.repos.StoreRepo;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
-import at.fhtw.mtcgapp.model.CardInfoUser;
+import at.fhtw.mtcgapp.model.Card;
+import at.fhtw.mtcgapp.model.userview.CardUserView;
 import at.fhtw.mtcgapp.model.TradingDeal;
 import at.fhtw.mtcgapp.model.User;
 import com.fasterxml.jackson.core.JacksonException;
@@ -35,7 +36,7 @@ public class TradingsController extends Controller {
                 );
             }
 
-            TradingRepo tradingRepo = new TradingRepo(uow);
+            StoreRepo tradingRepo = new StoreRepo(uow);
             List<TradingDeal> deals = tradingRepo.getTradingDeals();
             if(deals.isEmpty()) {
                 uow.commitTransaction();
@@ -91,10 +92,10 @@ public class TradingsController extends Controller {
                 }
 
                 PackageRepo packageRepo = new PackageRepo(uow);
-                List<CardInfoUser> userCards = packageRepo.getCardsByUid(user);
-                for (CardInfoUser card : userCards) {
+                List<CardUserView> userCards = packageRepo.getCardsByUid(user);
+                for (CardUserView card : userCards) {
                     if(card.getCid().equals(tradingDeal.getCardToTrade()) && packageRepo.checkCardIsEnabledToTrade(tradingDeal.getCardToTrade())) {
-                        TradingRepo tradingRepo = new TradingRepo(uow);
+                        StoreRepo tradingRepo = new StoreRepo(uow);
                         packageRepo.lockCard(tradingDeal.getCardToTrade());
                         tradingRepo.createTradingDeal(user, tradingDeal);
                         uow.commitTransaction();
@@ -149,7 +150,7 @@ public class TradingsController extends Controller {
             }
 
             String dealToDelete = request.getPathParts().get(1);
-            TradingRepo tradingRepo = new TradingRepo(uow);
+            StoreRepo tradingRepo = new StoreRepo(uow);
             TradingDeal tradingDeal = tradingRepo.getTradingDealById(dealToDelete);
             if(tradingDeal == null) {
                 uow.commitTransaction();
@@ -173,6 +174,72 @@ public class TradingsController extends Controller {
             return new Response(HttpStatus.OK,
                     ContentType.JSON,
                     "{ \"message\" : \"Trading deal successfully deleted\" }"
+            );
+        }
+        catch (DataAccessException dataAccessException) {
+            uow.rollbackTransaction();
+        }
+        finally {
+            uow.finishWork();
+        }
+
+        return new Response(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ContentType.JSON,
+                "{\"message\" : \"Internal Server Error\" }"
+        );
+    }
+
+    public Response trade(Request request) {
+        UOW uow = new UOW();
+        String token = request.getToken();
+        String cardInRequest = request.getBody().replace("\"", "");
+
+        try {
+            UserRepo userRepo = new UserRepo(uow);
+
+            User user = userRepo.getUserByToken(token);
+            if(user == null) {
+                uow.commitTransaction();
+                return new Response(HttpStatus.UNAUTHORIZED,
+                        ContentType.JSON,
+                        "{ \"message\" : \"Authentication information is missing or invalid\" }"
+                );
+            }
+
+            String dealToTrade = request.getPathParts().get(1);
+            StoreRepo tradingRepo = new StoreRepo(uow);
+            TradingDeal tradingDeal = tradingRepo.getTradingDealById(dealToTrade);
+            if(tradingDeal == null) {
+                uow.commitTransaction();
+                return new Response(HttpStatus.NOT_FOUND,
+                        ContentType.JSON,
+                        "{ \"message\" : \"The provided deal ID was not found.\" }"
+                );
+            }
+
+            PackageRepo packageRepo = new PackageRepo(uow);
+            Card cardToTrade = packageRepo.getCardByIdFromUser(user, cardInRequest);
+            if(cardToTrade == null ||
+                    cardToTrade.isIn_deck() ||
+                    cardToTrade.isIs_locked() ||
+                    cardToTrade.getDamage() < tradingDeal.getMinimumDamage()
+                    || !cardToTrade.getType().equals(tradingDeal.getType())) {
+                uow.commitTransaction();
+                return new Response(HttpStatus.FORBIDDEN,
+                        ContentType.JSON,
+                        "{ \"message\" : \"The offered card is not owned by the user, or the requirements are not met (Type, MinimumDamage), or the offered card is locked in the deck.\" }"
+                );
+            }
+
+            //packageRepo.updateCardOwnerById();
+            //packageRepo.updateCardOwnerById();
+            //tradingRepo.deleteTradingDealById();
+
+            uow.commitTransaction();
+            return new Response(HttpStatus.OK,
+                    ContentType.JSON,
+                    "{ \"message\" : \"Card successfully traded.\" }"
             );
         }
         catch (DataAccessException dataAccessException) {

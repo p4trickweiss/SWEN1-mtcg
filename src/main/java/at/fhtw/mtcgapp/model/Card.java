@@ -9,11 +9,17 @@ public class Card {
     private String name;
     @JsonAlias({"Damage"})
     private int damage;
+    @JsonAlias({"Type"})
     private String type;
+    @JsonAlias({"Element"})
     private String element;
+    @JsonAlias({"inDeck"})
     private boolean in_deck;
+    @JsonAlias({"isLocked"})
     private boolean is_locked;
+    @JsonAlias({"fkPid"})
     private int fk_pid;
+    @JsonAlias({"fkUid"})
     private int fk_uid;
 
     public Card() {}
@@ -22,6 +28,18 @@ public class Card {
         this.cid = cid;
         this.name = name;
         this.damage = damage;
+    }
+
+    public Card(String cid, String name, int damage, String type, String element, boolean in_deck, boolean is_locked, int fk_pid, int fk_uid) {
+        this.cid = cid;
+        this.name = name;
+        this.damage = damage;
+        this.type = type;
+        this.element = element;
+        this.in_deck = in_deck;
+        this.is_locked = is_locked;
+        this.fk_pid = fk_pid;
+        this.fk_uid = fk_uid;
     }
 
     public String getCid() {

@@ -20,11 +20,14 @@ public class TradingsService implements Service {
         if(request.getMethod() == Method.GET) {
             return this.tradingsController.getTradingDeals(request);
         }
-        if(request.getMethod() == Method.POST) {
+        if(request.getMethod() == Method.POST && request.getPathParts().size() == 1) {
             return this.tradingsController.createTradingDeal(request);
         }
-        if(request.getMethod() == Method.DELETE) {
+        if(request.getMethod() == Method.DELETE && request.getPathParts().size() == 2) {
             return this.tradingsController.deleteTradingDeal(request);
+        }
+        if(request.getMethod() == Method.POST && request.getPathParts().size() == 2) {
+            return this.tradingsController.trade(request);
         }
 
         return new Response(

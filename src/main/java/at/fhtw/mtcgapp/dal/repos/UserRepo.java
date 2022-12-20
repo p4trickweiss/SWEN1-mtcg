@@ -3,7 +3,7 @@ package at.fhtw.mtcgapp.dal.repos;
 import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.model.Package;
-import at.fhtw.mtcgapp.model.Stats;
+import at.fhtw.mtcgapp.model.userview.StatsUserView;
 import at.fhtw.mtcgapp.model.User;
 
 import java.sql.PreparedStatement;
@@ -127,12 +127,12 @@ public class UserRepo {
         }
     }
 
-    public List<Stats> getSortedScoreboard() throws DataAccessException {
-        List<Stats> userStats = new ArrayList<>();
+    public List<StatsUserView> getSortedScoreboard() throws DataAccessException {
+        List<StatsUserView> userStats = new ArrayList<>();
         try(PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT name, elo, wins, losses FROM \"user\" ORDER BY elo DESC")) {
             ResultSet resultSet = preparedStatement.executeQuery();
             while(resultSet.next()) {
-                userStats.add(new Stats(
+                userStats.add(new StatsUserView(
                         resultSet.getString(1),
                         resultSet.getInt(2),
                         resultSet.getInt(3),

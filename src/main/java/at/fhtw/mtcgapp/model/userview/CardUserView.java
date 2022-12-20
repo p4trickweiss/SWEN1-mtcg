@@ -1,8 +1,8 @@
-package at.fhtw.mtcgapp.model;
+package at.fhtw.mtcgapp.model.userview;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 
-public class CardInfoUser {
+public class CardUserView {
     @JsonAlias({"Id"})
     private String cid;
     @JsonAlias({"Name"})
@@ -10,10 +10,10 @@ public class CardInfoUser {
     @JsonAlias({"Damage"})
     private int damage;
 
-    public CardInfoUser() {
+    public CardUserView() {
     }
 
-    public CardInfoUser(String cid, String name, int damage) {
+    public CardUserView(String cid, String name, int damage) {
         this.cid = cid;
         this.name = name;
         this.damage = damage;

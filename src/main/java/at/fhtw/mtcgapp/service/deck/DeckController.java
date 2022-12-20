@@ -9,7 +9,7 @@ import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.PackageRepo;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
-import at.fhtw.mtcgapp.model.CardInfoUser;
+import at.fhtw.mtcgapp.model.userview.CardUserView;
 import at.fhtw.mtcgapp.model.User;
 import com.fasterxml.jackson.core.JacksonException;
 
@@ -38,7 +38,7 @@ public class DeckController extends Controller {
                 );
             }
 
-            List<CardInfoUser> cards = packageRepo.getCardsInDeck(user);
+            List<CardUserView> cards = packageRepo.getCardsInDeck(user);
             if(cards.isEmpty()) {
                 uow.commitTransaction();
                 return new Response(HttpStatus.NO_CONTENT,

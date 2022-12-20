@@ -1,8 +1,9 @@
-package at.fhtw.mtcgapp.model;
+package at.fhtw.mtcgapp.model.userview;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 
-public class TradingDeal {
+public class TradingDealUserView {
+
     @JsonAlias({"Id"})
     private String id;
     @JsonAlias({"CardToTrade"})
@@ -11,25 +12,12 @@ public class TradingDeal {
     private String type;
     @JsonAlias({"MinimumDamage"})
     private int minimumDamage;
-    @JsonAlias({"fkUid"})
-    private int fkUid;
 
-    public TradingDeal() {
-    }
-
-    public TradingDeal(String id, String cardToTrade, String type, int minimumDamage) {
+    public TradingDealUserView(String id, String cardToTrade, String type, int minimumDamage) {
         this.id = id;
         this.cardToTrade = cardToTrade;
         this.type = type;
         this.minimumDamage = minimumDamage;
-    }
-
-    public TradingDeal(String id, String cardToTrade, String type, int minimumDamage, int fkUid) {
-        this.id = id;
-        this.cardToTrade = cardToTrade;
-        this.type = type;
-        this.minimumDamage = minimumDamage;
-        this.fkUid = fkUid;
     }
 
     public String getId() {
@@ -64,17 +52,9 @@ public class TradingDeal {
         this.minimumDamage = minimumDamage;
     }
 
-    public int getFkUid() {
-        return fkUid;
-    }
-
-    public void setFkUid(int fkUid) {
-        this.fkUid = fkUid;
-    }
-
     @Override
     public String toString() {
-        return "TradingDeal{" +
+        return "TradingDealUserView{" +
                 "id='" + id + '\'' +
                 ", cardToTrade='" + cardToTrade + '\'' +
                 ", type='" + type + '\'' +

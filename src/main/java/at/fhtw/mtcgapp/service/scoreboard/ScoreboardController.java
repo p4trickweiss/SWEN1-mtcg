@@ -8,7 +8,7 @@ import at.fhtw.mtcgapp.controller.Controller;
 import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
-import at.fhtw.mtcgapp.model.Stats;
+import at.fhtw.mtcgapp.model.userview.StatsUserView;
 import at.fhtw.mtcgapp.model.User;
 import com.fasterxml.jackson.core.JacksonException;
 
@@ -31,7 +31,7 @@ public class ScoreboardController extends Controller {
                 );
             }
 
-            List<Stats> userStats = userRepo.getSortedScoreboard();
+            List<StatsUserView> userStats = userRepo.getSortedScoreboard();
             String json = null;
             try {
                 json = this.getObjectMapper().writeValueAsString(userStats);

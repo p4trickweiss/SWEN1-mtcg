@@ -9,7 +9,7 @@ import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.PackageRepo;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
-import at.fhtw.mtcgapp.model.CardInfoUser;
+import at.fhtw.mtcgapp.model.userview.CardUserView;
 import at.fhtw.mtcgapp.model.User;
 import com.fasterxml.jackson.core.JacksonException;
 
@@ -37,7 +37,7 @@ public class CardsController extends Controller {
                 );
             }
 
-            List<CardInfoUser> cards = packageRepo.getCardsByUid(user);
+            List<CardUserView> cards = packageRepo.getCardsByUid(user);
 
             if(cards.isEmpty()) {
                 uow.commitTransaction();
