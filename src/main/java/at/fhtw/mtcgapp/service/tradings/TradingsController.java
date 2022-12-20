@@ -7,7 +7,7 @@ import at.fhtw.httpserver.server.Response;
 import at.fhtw.mtcgapp.controller.Controller;
 import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
-import at.fhtw.mtcgapp.dal.repos.PackageRepo;
+import at.fhtw.mtcgapp.dal.repos.CardRepo;
 import at.fhtw.mtcgapp.dal.repos.StoreRepo;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
 import at.fhtw.mtcgapp.model.Card;
@@ -91,12 +91,12 @@ public class TradingsController extends Controller {
                     );
                 }
 
-                PackageRepo packageRepo = new PackageRepo(uow);
-                List<CardUserView> userCards = packageRepo.getCardsByUid(user);
+                CardRepo cardRepo = new CardRepo(uow);
+                List<CardUserView> userCards = cardRepo.getCardsByUid(user);
                 for (CardUserView card : userCards) {
-                    if(card.getCid().equals(tradingDeal.getCardToTrade()) && packageRepo.checkCardIsEnabledToTrade(tradingDeal.getCardToTrade())) {
+                    if(card.getCid().equals(tradingDeal.getCardToTrade()) && cardRepo.checkCardIsEnabledToTrade(tradingDeal.getCardToTrade())) {
                         StoreRepo tradingRepo = new StoreRepo(uow);
-                        packageRepo.lockCard(tradingDeal.getCardToTrade());
+                        cardRepo.lockCard(tradingDeal.getCardToTrade());
                         tradingRepo.createTradingDeal(user, tradingDeal);
                         uow.commitTransaction();
                         return new Response(HttpStatus.OK,
@@ -218,8 +218,8 @@ public class TradingsController extends Controller {
                 );
             }
 
-            PackageRepo packageRepo = new PackageRepo(uow);
-            Card cardToTrade = packageRepo.getCardByIdFromUser(user, cardInRequest);
+            CardRepo cardRepo = new CardRepo(uow);
+            Card cardToTrade = cardRepo.getCardByIdFromUser(user, cardInRequest);
             if(cardToTrade == null ||
                     cardToTrade.isIn_deck() ||
                     cardToTrade.isIs_locked() ||

@@ -36,7 +36,7 @@ public class CardRepo {
         }
     }
 
-    public void acquireCardByPid(Package cardPackage, User user) throws DataAccessException {
+    public void acquireCardsByPid(Package cardPackage, User user) throws DataAccessException {
         try(PreparedStatement preparedStatement = this.uow.prepareStatement("UPDATE card SET fk_uid = (SELECT uid FROM \"user\" WHERE username = ?) WHERE fk_pid = ?")) {
             preparedStatement.setString(1, user.getUsername());
             preparedStatement.setInt(2, cardPackage.getPid());

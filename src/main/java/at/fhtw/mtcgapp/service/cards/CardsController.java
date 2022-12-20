@@ -7,7 +7,7 @@ import at.fhtw.httpserver.server.Response;
 import at.fhtw.mtcgapp.controller.Controller;
 import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
-import at.fhtw.mtcgapp.dal.repos.PackageRepo;
+import at.fhtw.mtcgapp.dal.repos.CardRepo;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
 import at.fhtw.mtcgapp.model.userview.CardUserView;
 import at.fhtw.mtcgapp.model.User;
@@ -26,7 +26,7 @@ public class CardsController extends Controller {
 
         try {
             UserRepo userRepo = new UserRepo(uow);
-            PackageRepo packageRepo = new PackageRepo(uow);
+            CardRepo cardRepo = new CardRepo(uow);
 
             User user = userRepo.getUserByToken(token);
             if(user == null) {
@@ -37,7 +37,7 @@ public class CardsController extends Controller {
                 );
             }
 
-            List<CardUserView> cards = packageRepo.getCardsByUid(user);
+            List<CardUserView> cards = cardRepo.getCardsByUid(user);
 
             if(cards.isEmpty()) {
                 uow.commitTransaction();

@@ -7,6 +7,7 @@ import at.fhtw.httpserver.server.Response;
 import at.fhtw.mtcgapp.controller.Controller;
 import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
+import at.fhtw.mtcgapp.dal.repos.CardRepo;
 import at.fhtw.mtcgapp.dal.repos.PackageRepo;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
 import at.fhtw.mtcgapp.model.userview.CardUserView;
@@ -25,10 +26,11 @@ public class TransactionsController extends Controller {
         UOW uow = new UOW();
 
         try {
-            PackageRepo packageRepo = new PackageRepo(uow);
             UserRepo userRepo = new UserRepo(uow);
-            User user = userRepo.getUserByToken(token);
+            PackageRepo packageRepo = new PackageRepo(uow);
+            CardRepo cardRepo = new CardRepo(uow);
 
+            User user = userRepo.getUserByToken(token);
             if (user == null) {
                 uow.commitTransaction();
                 return new Response(HttpStatus.UNAUTHORIZED,
@@ -56,9 +58,9 @@ public class TransactionsController extends Controller {
 
             packageRepo.makePackageUnavailable(cardPackage);
             userRepo.payPackage(cardPackage, user);
-            packageRepo.acquireCardByPid(cardPackage, user);
+            cardRepo.acquireCardsByPid(cardPackage, user);
 
-            List<CardUserView> cards = packageRepo.getCardsByPid(cardPackage);
+            List<CardUserView> cards = cardRepo.getCardsByPid(cardPackage);
             String json = null;
             try {
                 json = this.getObjectMapper().writeValueAsString(cards);
