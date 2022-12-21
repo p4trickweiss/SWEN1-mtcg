@@ -103,7 +103,7 @@ public class Request {
     }
 
     public String getToken() {
-        if(this.getHeaderMap().getHeader("Authorization").isEmpty()) {
+        if(this.getHeaderMap().getHeader("Authorization") == null || this.getHeaderMap().getHeader("Authorization").isEmpty()) {
             return " ";
         }
         String token = this.getHeaderMap().getHeader("Authorization");

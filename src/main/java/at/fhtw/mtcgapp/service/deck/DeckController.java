@@ -38,7 +38,7 @@ public class DeckController extends Controller {
                 );
             }
 
-            List<CardUserView> cards = cardRepo.getCardsInDeck(user);
+            List<CardUserView> cards = cardRepo.getCardsInDeckUserView(user);
             if(cards.isEmpty()) {
                 uow.commitTransaction();
                 return new Response(HttpStatus.NO_CONTENT,

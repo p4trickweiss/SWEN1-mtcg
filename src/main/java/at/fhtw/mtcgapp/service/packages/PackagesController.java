@@ -51,6 +51,7 @@ public class PackagesController extends Controller {
                 int packageId = packageRepo.createPackageAndGetId();
                 for (Card card : cards) {
                     card.setFk_pid(packageId);
+                    this.setTypeAndElement(card);
                     cardRepo.createCard(card);
                 }
                 uow.commitTransaction();
@@ -80,5 +81,25 @@ public class PackagesController extends Controller {
                 ContentType.JSON,
                 "{ \"message\" : \"Internal Server Error\" }"
         );
+    }
+
+    private void setTypeAndElement(Card card) {
+        String name = card.getName().toLowerCase();
+        if(name.contains("fire")) {
+            card.setElement("fire");
+        }
+        else if(name.contains("water")) {
+            card.setElement("water");
+        }
+        else {
+            card.setElement("normal");
+        }
+
+        if(name.contains("spell")) {
+            card.setType("spell");
+        }
+        else {
+            card.setType("monster");
+        }
     }
 }
