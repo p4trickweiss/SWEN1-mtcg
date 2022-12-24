@@ -7,9 +7,11 @@ import at.fhtw.httpserver.server.Response;
 import at.fhtw.mtcgapp.controller.Controller;
 import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
+import at.fhtw.mtcgapp.dal.repos.BattleLogRepo;
 import at.fhtw.mtcgapp.dal.repos.CardRepo;
 import at.fhtw.mtcgapp.dal.repos.LobbyRepo;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
+import at.fhtw.mtcgapp.model.BattleLogEntry;
 import at.fhtw.mtcgapp.model.Card;
 import at.fhtw.mtcgapp.model.User;
 
@@ -38,32 +40,87 @@ public class BattleController extends Controller {
             LobbyRepo lobbyRepo = new LobbyRepo(uow);
             String usernameUserTwo = lobbyRepo.getPlayerFromLobby();
             if(usernameUserTwo == null) {
-                lobbyRepo.joinLobby(userOne);
+                int bid = lobbyRepo.joinLobby(userOne);
+                uow.commitTransaction();
+                BattleLogRepo battleLogRepo = new BattleLogRepo(uow);
+                while(!battleLogRepo.checkFinishedByBid(bid));
+                uow.commitTransaction();
+                return new Response(HttpStatus.OK,
+                                    ContentType.PLAIN_TEXT,
+                                    "battle done"
+                );
             }
             else {
                 User userTwo = userRepo.getUserByUsername(usernameUserTwo);
-                lobbyRepo.removePlayerFromLobby(userTwo);
+                int bid = lobbyRepo.removePlayerFromLobby(userTwo);
+
                 CardRepo cardRepo = new CardRepo(uow);
+                BattleLogRepo battleLogRepo = new BattleLogRepo(uow);
 
                 List<Card> deckUserOne = cardRepo.getCardsInDeckUser(userOne);
                 List<Card> deckUserTwo = cardRepo.getCardsInDeckUser(userTwo);
 
                 Random rand = new Random();
                 for(int roundCounter = 0; roundCounter < 100; roundCounter++) {
+                    if(deckUserOne.isEmpty() || deckUserTwo.isEmpty()) {
+                        BattleLogEntry battleLogEntry = new BattleLogEntry(bid, userOne.getUsername(), userTwo.getUsername(), " ", " ", 10, 10, true);
+                        uow.commitTransaction();
+                        return new Response(HttpStatus.OK,
+                                ContentType.PLAIN_TEXT,
+                                "deck empty"
+                        );
+                    }
                     Card cardUserOne = deckUserOne.get(rand.nextInt(deckUserOne.size()));
                     Card cardUserTwo = deckUserTwo.get(rand.nextInt(deckUserTwo.size()));
+                    int winner;
 
                     if(cardUserOne.getType().equals("monster") && cardUserTwo.getType().equals("monster")) {
-                        this.pureMonsterFight(cardUserOne, cardUserTwo);
+                        winner = this.pureMonsterFight(cardUserOne, cardUserTwo);
+                        if(winner == 1) {
+                            deckUserTwo.remove(cardUserTwo);
+                            deckUserOne.add(cardUserTwo);
+                        }
+                        if(winner == 2) {
+                            deckUserOne.remove(cardUserOne);
+                            deckUserTwo.add(cardUserOne);
+                        }
                     }
-                    if(cardUserOne.getType().equals("spell") && cardUserTwo.getType().equals("spell")) {
-                        this.pureSpellFight(cardUserOne, cardUserTwo);
+                    else if(cardUserOne.getType().equals("spell") && cardUserTwo.getType().equals("spell")) {
+                        winner = this.spellFight(cardUserOne, cardUserTwo);
+                        if(winner == 1) {
+                            deckUserTwo.remove(cardUserTwo);
+                            deckUserOne.add(cardUserTwo);
+                        }
+                        if(winner == 2) {
+                            deckUserOne.remove(cardUserOne);
+                            deckUserTwo.add(cardUserOne);
+                        }
                     }
                     else {
-                        this.mixedFight(cardUserOne, cardUserTwo);
+                        winner = this.spellFight(cardUserOne, cardUserTwo);
+                        if(winner == 1) {
+                            deckUserTwo.remove(cardUserTwo);
+                            deckUserOne.add(cardUserTwo);
+                        }
+                        if(winner == 2) {
+                            deckUserOne.remove(cardUserOne);
+                            deckUserTwo.add(cardUserOne);
+                        }
                     }
+                    String roundWinner = winner == 1 ? userOne.getUsername() : userTwo.getUsername();
+                    System.out.println("Round " + roundCounter + ": " + cardUserOne.getName() + " vs " + cardUserTwo.getName());
+                    System.out.println("Round " + roundCounter + ": " + cardUserOne.getDamage() + " vs " + cardUserTwo.getDamage());
+                    System.out.println("Winner of round " + roundCounter + ": " + roundWinner);
+                    System.out.println("Deck of user1: " + deckUserOne.size() + " Deck of user2: " + deckUserTwo.size());
+                    //battleLogRepo.
                 }
-
+                BattleLogEntry battleLogEntry = new BattleLogEntry(bid, userOne.getUsername(), userTwo.getUsername(), " ", " ", 10, 10, true);
+                battleLogRepo.addLogEntry(battleLogEntry);
+                uow.commitTransaction();
+                return new Response(HttpStatus.OK,
+                        ContentType.PLAIN_TEXT,
+                        "draw"
+                );
 
             }
         }
@@ -81,15 +138,61 @@ public class BattleController extends Controller {
         );
     }
 
-    public void pureMonsterFight(Card cardOne, Card cardTwo) {
-
+    public int pureMonsterFight(Card cardOne, Card cardTwo) {
+        int damageCardOne = cardOne.getDamage();
+        int damageCardTwo = cardTwo.getDamage();
+        return returnWinner(damageCardOne, damageCardTwo);
     }
 
-    public void pureSpellFight(Card cardOne, Card cardTwo) {
+    public int spellFight(Card cardOne, Card cardTwo) {
+        int damageCardOne = cardOne.getDamage();
+        int damageCardTwo = cardTwo.getDamage();
 
+        if(cardOne.getElement().equals(cardTwo.getElement())) {
+            return returnWinner(damageCardOne, damageCardTwo);
+        }
+        else if(cardOne.getElement().equals("water") && cardTwo.getElement().equals("fire")) {
+            damageCardOne = damageCardOne * 2;
+            damageCardTwo =damageCardTwo / 2;
+            return returnWinner(damageCardOne, damageCardTwo);
+        }
+        else if(cardOne.getElement().equals("fire") && cardTwo.getElement().equals("normal")) {
+            damageCardOne = damageCardOne * 2;
+            damageCardTwo =damageCardTwo / 2;
+            return returnWinner(damageCardOne, damageCardTwo);
+        }
+        else if(cardOne.getElement().equals("normal") && cardTwo.getElement().equals("water")) {
+            damageCardOne = damageCardOne * 2;
+            damageCardTwo =damageCardTwo / 2;
+            return returnWinner(damageCardOne, damageCardTwo);
+        }
+        else if(cardOne.getElement().equals("fire") && cardTwo.getElement().equals("water")) {
+            damageCardOne = damageCardOne / 2;
+            damageCardTwo =damageCardTwo * 2;
+            return returnWinner(damageCardOne, damageCardTwo);
+        }
+        else if(cardOne.getElement().equals("normal") && cardTwo.getElement().equals("fire")) {
+            damageCardOne = damageCardOne / 2;
+            damageCardTwo =damageCardTwo * 2;
+            return returnWinner(damageCardOne, damageCardTwo);
+        }
+        else if(cardOne.getElement().equals("water") && cardTwo.getElement().equals("normal")) {
+            damageCardOne = damageCardOne / 2;
+            damageCardTwo =damageCardTwo * 2;
+            return returnWinner(damageCardOne, damageCardTwo);
+        }
+        return -1;
     }
 
-    public void mixedFight(Card cardOne, Card cardTwo) {
-
+    public int returnWinner(int damageCardOne, int damageCardTwo) {
+        if(damageCardOne == damageCardTwo) {
+            return 0;
+        }
+        else if(damageCardOne > damageCardTwo){
+            return 1;
+        }
+        else {
+            return 2;
+        }
     }
 }
