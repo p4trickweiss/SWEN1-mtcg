@@ -14,6 +14,8 @@ import at.fhtw.mtcgapp.dal.repos.UserRepo;
 import at.fhtw.mtcgapp.model.BattleLogEntry;
 import at.fhtw.mtcgapp.model.Card;
 import at.fhtw.mtcgapp.model.User;
+import at.fhtw.mtcgapp.model.userview.LogEntryUserView;
+import com.fasterxml.jackson.core.JacksonException;
 
 import java.util.List;
 import java.util.Random;
@@ -42,14 +44,12 @@ public class BattleController extends Controller {
             if(usernameUserTwo == null) {
                 int bid = lobbyRepo.joinLobby(userOne);
                 uow.commitTransaction();
-                BattleLogRepo battleLogRepo = new BattleLogRepo(uow);
-                while(!battleLogRepo.checkFinishedByBid(bid));
-                uow.commitTransaction();
                 return new Response(HttpStatus.OK,
                                     ContentType.PLAIN_TEXT,
-                                    "battle done"
+                                    "joined lobby"
                 );
             }
+
             else {
                 User userTwo = userRepo.getUserByUsername(usernameUserTwo);
                 int bid = lobbyRepo.removePlayerFromLobby(userTwo);
@@ -60,68 +60,83 @@ public class BattleController extends Controller {
                 List<Card> deckUserOne = cardRepo.getCardsInDeckUser(userOne);
                 List<Card> deckUserTwo = cardRepo.getCardsInDeckUser(userTwo);
 
+                int battleWinner = 0;
                 Random rand = new Random();
-                for(int roundCounter = 0; roundCounter < 100; roundCounter++) {
+                for(int roundCounter = 1; roundCounter <= 100; roundCounter++) {
                     if(deckUserOne.isEmpty() || deckUserTwo.isEmpty()) {
-                        BattleLogEntry battleLogEntry = new BattleLogEntry(bid, userOne.getUsername(), userTwo.getUsername(), " ", " ", 10, 10, true);
-                        uow.commitTransaction();
-                        return new Response(HttpStatus.OK,
-                                ContentType.PLAIN_TEXT,
-                                "deck empty"
-                        );
+                        if(deckUserOne.isEmpty()) {
+                            battleWinner = 2;
+                        }
+                        else {
+                            battleWinner = 1;
+                        }
+                        break;
                     }
+                    
                     Card cardUserOne = deckUserOne.get(rand.nextInt(deckUserOne.size()));
                     Card cardUserTwo = deckUserTwo.get(rand.nextInt(deckUserTwo.size()));
                     int winner;
 
                     if(cardUserOne.getType().equals("monster") && cardUserTwo.getType().equals("monster")) {
                         winner = this.pureMonsterFight(cardUserOne, cardUserTwo);
-                        if(winner == 1) {
-                            deckUserTwo.remove(cardUserTwo);
-                            deckUserOne.add(cardUserTwo);
-                        }
-                        if(winner == 2) {
-                            deckUserOne.remove(cardUserOne);
-                            deckUserTwo.add(cardUserOne);
-                        }
+
                     }
                     else if(cardUserOne.getType().equals("spell") && cardUserTwo.getType().equals("spell")) {
                         winner = this.spellFight(cardUserOne, cardUserTwo);
-                        if(winner == 1) {
-                            deckUserTwo.remove(cardUserTwo);
-                            deckUserOne.add(cardUserTwo);
-                        }
-                        if(winner == 2) {
-                            deckUserOne.remove(cardUserOne);
-                            deckUserTwo.add(cardUserOne);
-                        }
+
                     }
                     else {
                         winner = this.spellFight(cardUserOne, cardUserTwo);
-                        if(winner == 1) {
-                            deckUserTwo.remove(cardUserTwo);
-                            deckUserOne.add(cardUserTwo);
-                        }
-                        if(winner == 2) {
-                            deckUserOne.remove(cardUserOne);
-                            deckUserTwo.add(cardUserOne);
-                        }
+
                     }
+
+                    if(winner == 1) {
+                        deckUserTwo.remove(cardUserTwo);
+                        deckUserOne.add(cardUserTwo);
+                    }
+                    if(winner == 2) {
+                        deckUserOne.remove(cardUserOne);
+                        deckUserTwo.add(cardUserOne);
+                    }
+                    BattleLogEntry round = new BattleLogEntry(bid, userOne.getUsername(), userTwo.getUsername(), cardUserOne.getName(), cardUserTwo.getName(), cardUserOne.getDamage(), cardUserTwo.getDamage(), false);
+                    battleLogRepo.addLogEntry(round);
+                    /*
                     String roundWinner = winner == 1 ? userOne.getUsername() : userTwo.getUsername();
                     System.out.println("Round " + roundCounter + ": " + cardUserOne.getName() + " vs " + cardUserTwo.getName());
                     System.out.println("Round " + roundCounter + ": " + cardUserOne.getDamage() + " vs " + cardUserTwo.getDamage());
                     System.out.println("Winner of round " + roundCounter + ": " + roundWinner);
                     System.out.println("Deck of user1: " + deckUserOne.size() + " Deck of user2: " + deckUserTwo.size());
-                    //battleLogRepo.
+                    */
                 }
+
                 BattleLogEntry battleLogEntry = new BattleLogEntry(bid, userOne.getUsername(), userTwo.getUsername(), " ", " ", 10, 10, true);
                 battleLogRepo.addLogEntry(battleLogEntry);
+
+                if(battleWinner == 1) {
+                    userRepo.updateEloWin(userOne);
+                    userRepo.updateWins(userOne);
+                    userRepo.updateEloLoss(userTwo);
+                    userRepo.updateLosses(userTwo);
+                }
+                else if(battleWinner == 2) {
+                    userRepo.updateEloWin(userTwo);
+                    userRepo.updateWins(userTwo);
+                    userRepo.updateEloLoss(userOne);
+                    userRepo.updateLosses(userOne);
+                }
+
+                List<LogEntryUserView> logEntries = battleLogRepo.getLogEntriesUserViewById(bid);
+                String json = null;
+                try {
+                    json = this.getObjectMapper().writeValueAsString(logEntries);
+                } catch (JacksonException e) {
+                    e.printStackTrace();
+                }
                 uow.commitTransaction();
                 return new Response(HttpStatus.OK,
-                        ContentType.PLAIN_TEXT,
-                        "draw"
+                        ContentType.JSON,
+                        json
                 );
-
             }
         }
         catch (DataAccessException dataAccessException) {
@@ -139,12 +154,20 @@ public class BattleController extends Controller {
     }
 
     public int pureMonsterFight(Card cardOne, Card cardTwo) {
+        if(this.specialRules(cardOne, cardTwo) != -1) {
+            return this.specialRules(cardOne, cardTwo);
+        }
+
         int damageCardOne = cardOne.getDamage();
         int damageCardTwo = cardTwo.getDamage();
         return returnWinner(damageCardOne, damageCardTwo);
     }
 
     public int spellFight(Card cardOne, Card cardTwo) {
+        if(this.specialRules(cardOne, cardTwo) != -1) {
+            return this.specialRules(cardOne, cardTwo);
+        }
+
         int damageCardOne = cardOne.getDamage();
         int damageCardTwo = cardTwo.getDamage();
 
@@ -180,6 +203,43 @@ public class BattleController extends Controller {
             damageCardOne = damageCardOne / 2;
             damageCardTwo =damageCardTwo * 2;
             return returnWinner(damageCardOne, damageCardTwo);
+        }
+        return -1;
+    }
+
+    public int specialRules(Card cardOne, Card cardTwo) {
+        String cardOneName = cardOne.getName().toLowerCase();
+        String cardTwoName = cardTwo.getName().toLowerCase();
+
+        if(cardOneName.contains("goblin") && cardTwoName.contains("dragon")) {
+            return 1;
+        }
+        else if(cardOneName.contains("dragon") && cardTwoName.contains("goblin")) {
+            return 2;
+        }
+        else if(cardOneName.contains("wizard") && cardTwoName.contains("ork")) {
+            return 1;
+        }
+        else if(cardOneName.contains("ork") && cardTwoName.contains("wizard")) {
+            return 2;
+        }
+        else if(cardOneName.contains("knight") && cardTwoName.contains("waterspell")) {
+            return 2;
+        }
+        else if(cardOneName.contains("waterspell") && cardTwoName.contains("knight")) {
+            return 1;
+        }
+        else if(cardOneName.contains("kraken") && cardTwo.getType().equals("spell")) {
+            return 1;
+        }
+        else if(cardOne.getType().equals("spell") && cardTwoName.contains("kraken")) {
+            return 2;
+        }
+        else if(cardOneName.contains("fireelve") && cardTwoName.contains("dragon")) {
+            return 1;
+        }
+        else if(cardOneName.contains("dragon") && cardTwoName.contains("fireelve")) {
+            return 2;
         }
         return -1;
     }

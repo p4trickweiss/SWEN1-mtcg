@@ -31,7 +31,7 @@ public class LobbyRepo {
     }
 
     public int joinLobby(User user) throws DataAccessException {
-        try(PreparedStatement preparedStatement = this.uow.prepareStatement("INSERT INTO lobby VALUES (0, ?) RETURNING bid")) {
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("INSERT INTO lobby (player) VALUES (?) RETURNING bid")) {
             preparedStatement.setString(1, user.getUsername());
             ResultSet resultSet = preparedStatement.executeQuery();
             int bid = 0;

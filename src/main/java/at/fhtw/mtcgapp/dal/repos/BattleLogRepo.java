@@ -3,10 +3,13 @@ package at.fhtw.mtcgapp.dal.repos;
 import at.fhtw.mtcgapp.dal.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.model.BattleLogEntry;
+import at.fhtw.mtcgapp.model.userview.LogEntryUserView;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BattleLogRepo {
 
@@ -45,6 +48,28 @@ public class BattleLogRepo {
         }
         catch (SQLException sqlException) {
             throw new DataAccessException("addLogEntry error");
+        }
+    }
+
+    public List<LogEntryUserView> getLogEntriesUserViewById(int bid) throws DataAccessException {
+        List<LogEntryUserView> logEntries = new ArrayList<>();
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT * FROM \"battle-log\" WHERE bid = ?")) {
+            preparedStatement.setInt(1, bid);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                logEntries.add(new LogEntryUserView(
+                        resultSet.getString(2),
+                        resultSet.getString(3),
+                        resultSet.getString(4),
+                        resultSet.getString(5),
+                        resultSet.getInt(6),
+                        resultSet.getInt(7)
+                ));
+            }
+            return logEntries;
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("getLogEntriesUserViewById error");
         }
     }
 }
