@@ -1,6 +1,6 @@
 package at.fhtw.mtcgapp.dal.repos;
 
-import at.fhtw.mtcgapp.dal.DataAccessException;
+import at.fhtw.mtcgapp.dal.exceptions.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.model.Package;
 import at.fhtw.mtcgapp.model.userview.StatsUserView;

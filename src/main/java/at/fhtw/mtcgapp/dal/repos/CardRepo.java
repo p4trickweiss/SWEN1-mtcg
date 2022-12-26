@@ -1,6 +1,6 @@
 package at.fhtw.mtcgapp.dal.repos;
 
-import at.fhtw.mtcgapp.dal.DataAccessException;
+import at.fhtw.mtcgapp.dal.exceptions.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.model.Card;
 import at.fhtw.mtcgapp.model.userview.CardUserView;
@@ -209,6 +209,22 @@ public class CardRepo {
         }
         catch (SQLException sqlException) {
             throw new DataAccessException("updateCardOwnerById");
+        }
+    }
+
+    public boolean checkCardBelongsToUser(User user, String cid) throws DataAccessException {
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT * FROM card WHERE cid = ? and fk_uid = ?")) {
+            preparedStatement.setString(1, cid);
+            preparedStatement.setInt(2, user.getId());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            boolean belongsToUser = false;
+            while (resultSet.next()) {
+                belongsToUser = true;
+            }
+            return belongsToUser;
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("checkCardBelongsToUser error");
         }
     }
 }

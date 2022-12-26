@@ -54,3 +54,21 @@ CREATE TABLE "store" (
                              FOREIGN KEY ("fk_uid")
                                  REFERENCES "user"("uid")
 );
+
+DROP TABLE IF EXISTS "lobby";
+CREATE TABLE "lobby" (
+                         "bid" SERIAL,
+                         "player" varchar(64) NOT NULL
+);
+
+DROP TABLE IF EXISTS "battle-log";
+CREATE TABLE "battle-log" (
+                              "bid" integer,
+                              "playerA" varchar(64),
+                              "playerB" varchar(64),
+                              "cardPlayerA" varchar(64),
+                              "cardPlayerB" varchar(64),
+                              "damageCardA" integer,
+                              "damageCardB" integer,
+                              "finished" bool
+);

@@ -5,7 +5,7 @@ import at.fhtw.httpserver.http.HttpStatus;
 import at.fhtw.httpserver.server.Request;
 import at.fhtw.httpserver.server.Response;
 import at.fhtw.mtcgapp.controller.Controller;
-import at.fhtw.mtcgapp.dal.DataAccessException;
+import at.fhtw.mtcgapp.dal.exceptions.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.BattleLogRepo;
 import at.fhtw.mtcgapp.dal.repos.CardRepo;
@@ -46,7 +46,7 @@ public class BattleController extends Controller {
                 uow.commitTransaction();
                 return new Response(HttpStatus.OK,
                                     ContentType.PLAIN_TEXT,
-                                    "joined lobby"
+                                    "joined lobby, bid: " + bid
                 );
             }
 
@@ -100,13 +100,6 @@ public class BattleController extends Controller {
                     }
                     BattleLogEntry round = new BattleLogEntry(bid, userOne.getUsername(), userTwo.getUsername(), cardUserOne.getName(), cardUserTwo.getName(), cardUserOne.getDamage(), cardUserTwo.getDamage(), false);
                     battleLogRepo.addLogEntry(round);
-                    /*
-                    String roundWinner = winner == 1 ? userOne.getUsername() : userTwo.getUsername();
-                    System.out.println("Round " + roundCounter + ": " + cardUserOne.getName() + " vs " + cardUserTwo.getName());
-                    System.out.println("Round " + roundCounter + ": " + cardUserOne.getDamage() + " vs " + cardUserTwo.getDamage());
-                    System.out.println("Winner of round " + roundCounter + ": " + roundWinner);
-                    System.out.println("Deck of user1: " + deckUserOne.size() + " Deck of user2: " + deckUserTwo.size());
-                    */
                 }
 
                 BattleLogEntry battleLogEntry = new BattleLogEntry(bid, userOne.getUsername(), userTwo.getUsername(), " ", " ", 10, 10, true);
