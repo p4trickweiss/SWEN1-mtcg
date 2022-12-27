@@ -110,12 +110,22 @@ public class BattleController extends Controller {
                     userRepo.updateWins(userOne);
                     userRepo.updateEloLoss(userTwo);
                     userRepo.updateLosses(userTwo);
+
+                    cardRepo.clearDeck(userTwo);
+                    for(Card card : deckUserOne) {
+                        cardRepo.updateCardOwnerById(userOne.getId(), card.getCid());
+                    }
                 }
                 else if(battleWinner == 2) {
                     userRepo.updateEloWin(userTwo);
                     userRepo.updateWins(userTwo);
                     userRepo.updateEloLoss(userOne);
                     userRepo.updateLosses(userOne);
+
+                    cardRepo.clearDeck(userOne);
+                    for(Card card : deckUserTwo) {
+                        cardRepo.updateCardOwnerById(userTwo.getId(), card.getCid());
+                    }
                 }
 
                 List<LogEntryUserView> logEntries = battleLogRepo.getLogEntriesUserViewById(bid);
