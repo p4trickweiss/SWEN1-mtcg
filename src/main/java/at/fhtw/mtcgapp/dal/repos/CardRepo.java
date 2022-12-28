@@ -1,6 +1,6 @@
 package at.fhtw.mtcgapp.dal.repos;
 
-import at.fhtw.mtcgapp.dal.DataAccessException;
+import at.fhtw.mtcgapp.dal.exceptions.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.model.Card;
 import at.fhtw.mtcgapp.model.userview.CardUserView;
@@ -22,11 +22,13 @@ public class CardRepo {
     }
 
     public void createCard(Card card) throws DataAccessException {
-        try (PreparedStatement preparedStatement = this.uow.prepareStatement("INSERT INTO card (cid, name, damage, fk_pid) VALUES (?, ?, ?, ?)")) {
+        try (PreparedStatement preparedStatement = this.uow.prepareStatement("INSERT INTO card (cid, name, damage, type, element, fk_pid) VALUES (?, ?, ?, ?, ?, ?)")) {
             preparedStatement.setString(1, card.getCid());
             preparedStatement.setString(2, card.getName());
             preparedStatement.setInt(3, card.getDamage());
-            preparedStatement.setInt(4, card.getFk_pid());
+            preparedStatement.setString(4, card.getType());
+            preparedStatement.setString(5, card.getElement());
+            preparedStatement.setInt(6, card.getFk_pid());
             preparedStatement.execute();
         } catch (SQLException sqlException) {
             if(sqlException.getErrorCode() == 0) {
@@ -83,7 +85,7 @@ public class CardRepo {
         }
     }
 
-    public List<CardUserView> getCardsInDeck(User user) throws DataAccessException {
+    public List<CardUserView> getCardsInDeckUserView(User user) throws DataAccessException {
         List<CardUserView> cards = new ArrayList<>();
         try (PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT * FROM card WHERE fk_uid = ? AND in_deck = true")) {
             preparedStatement.setInt(1, user.getId());
@@ -94,6 +96,30 @@ public class CardRepo {
                         resultSet.getString(2),
                         resultSet.getInt(3)
                 ));
+            }
+            return cards;
+        } catch (SQLException sqlException) {
+            throw new DataAccessException("getCardsInDeck error");
+        }
+    }
+
+    public List<Card> getCardsInDeckUser(User user) throws DataAccessException {
+        List<Card> cards = new ArrayList<>();
+        try (PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT * FROM card WHERE fk_uid = ? AND in_deck = true")) {
+            preparedStatement.setInt(1, user.getId());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                cards.add(new Card(
+                        resultSet.getString(1),
+                        resultSet.getString(2),
+                        resultSet.getInt(3),
+                        resultSet.getString(4),
+                        resultSet.getString(5),
+                        resultSet.getBoolean(6),
+                        resultSet.getBoolean(7),
+                        resultSet.getInt(8),
+                        resultSet.getInt(9))
+                );
             }
             return cards;
         } catch (SQLException sqlException) {
@@ -183,6 +209,22 @@ public class CardRepo {
         }
         catch (SQLException sqlException) {
             throw new DataAccessException("updateCardOwnerById");
+        }
+    }
+
+    public boolean checkCardBelongsToUser(User user, String cid) throws DataAccessException {
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("SELECT * FROM card WHERE cid = ? and fk_uid = ?")) {
+            preparedStatement.setString(1, cid);
+            preparedStatement.setInt(2, user.getId());
+            ResultSet resultSet = preparedStatement.executeQuery();
+            boolean belongsToUser = false;
+            while (resultSet.next()) {
+                belongsToUser = true;
+            }
+            return belongsToUser;
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("checkCardBelongsToUser error");
         }
     }
 }

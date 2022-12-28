@@ -5,7 +5,7 @@ import at.fhtw.httpserver.http.HttpStatus;
 import at.fhtw.httpserver.server.Request;
 import at.fhtw.httpserver.server.Response;
 import at.fhtw.mtcgapp.controller.Controller;
-import at.fhtw.mtcgapp.dal.DataAccessException;
+import at.fhtw.mtcgapp.dal.exceptions.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.CardRepo;
 import at.fhtw.mtcgapp.dal.repos.UserRepo;
@@ -38,7 +38,7 @@ public class DeckController extends Controller {
                 );
             }
 
-            List<CardUserView> cards = cardRepo.getCardsInDeck(user);
+            List<CardUserView> cards = cardRepo.getCardsInDeckUserView(user);
             if(cards.isEmpty()) {
                 uow.commitTransaction();
                 return new Response(HttpStatus.NO_CONTENT,
@@ -106,6 +106,12 @@ public class DeckController extends Controller {
 
             cardRepo.clearDeck(user);
             for (String card : list) {
+                if(!cardRepo.checkCardBelongsToUser(user, card)) {
+                    return new Response(HttpStatus.FORBIDDEN,
+                            ContentType.JSON,
+                            "{ \"message\" : \"One of the provided cards does not belong to the user\" }"
+                    );
+                }
                 cardRepo.putCardInDeck(card, user);
             }
             uow.commitTransaction();

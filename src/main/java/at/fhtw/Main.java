@@ -2,6 +2,8 @@ package at.fhtw;
 
 import at.fhtw.httpserver.server.Server;
 import at.fhtw.httpserver.utils.Router;
+import at.fhtw.mtcgapp.service.battle.BattleController;
+import at.fhtw.mtcgapp.service.battle.BattleService;
 import at.fhtw.mtcgapp.service.cards.CardsController;
 import at.fhtw.mtcgapp.service.cards.CardsService;
 import at.fhtw.mtcgapp.service.deck.DeckController;
@@ -46,6 +48,7 @@ public class Main {
         router.addService("/stats", new StatsService(new StatsContoller()));
         router.addService("/score", new ScoreboardService(new ScoreboardController()));
         router.addService("/tradings", new TradingsService(new TradingsController()));
+        router.addService("/battles", new BattleService(new BattleController()));
         return router;
     }
 }

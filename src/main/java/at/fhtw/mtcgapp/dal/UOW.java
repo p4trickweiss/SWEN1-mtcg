@@ -1,5 +1,7 @@
 package at.fhtw.mtcgapp.dal;
 
+import at.fhtw.mtcgapp.dal.exceptions.DataAccessException;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

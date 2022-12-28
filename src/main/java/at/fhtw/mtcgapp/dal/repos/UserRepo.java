@@ -1,6 +1,6 @@
 package at.fhtw.mtcgapp.dal.repos;
 
-import at.fhtw.mtcgapp.dal.DataAccessException;
+import at.fhtw.mtcgapp.dal.exceptions.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.model.Package;
 import at.fhtw.mtcgapp.model.userview.StatsUserView;
@@ -166,6 +166,46 @@ public class UserRepo {
         }
         catch (SQLException sqlException) {
             throw new DataAccessException("getUnsortedScoreboard error");
+        }
+    }
+
+    public void updateEloWin(User user) throws DataAccessException {
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("UPDATE \"user\" SET elo = elo + 3 WHERE uid = ?")) {
+            preparedStatement.setInt(1, user.getId());
+            preparedStatement.execute();
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("updateEloWin error");
+        }
+    }
+
+    public void updateEloLoss(User user) throws DataAccessException {
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("UPDATE \"user\" SET elo = elo - 5 WHERE uid = ?")) {
+            preparedStatement.setInt(1, user.getId());
+            preparedStatement.execute();
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("updateEloLoss error");
+        }
+    }
+
+    public void updateWins(User user) throws DataAccessException {
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("UPDATE \"user\" SET wins = wins + 1 WHERE uid = ?")) {
+            preparedStatement.setInt(1, user.getId());
+            preparedStatement.execute();
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("updateWins error");
+        }
+    }
+
+    public void updateLosses(User user) throws DataAccessException {
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("UPDATE \"user\" SET losses = losses + 1 WHERE uid = ?")) {
+            preparedStatement.setInt(1, user.getId());
+            preparedStatement.execute();
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("updateLosses error");
         }
     }
 }

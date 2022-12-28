@@ -1,4 +1,4 @@
-package at.fhtw.mtcgapp.dal;
+package at.fhtw.mtcgapp.dal.exceptions;
 
 public class DataAccessException extends RuntimeException{
     public DataAccessException(String message) {

@@ -5,7 +5,7 @@ import at.fhtw.httpserver.http.HttpStatus;
 import at.fhtw.httpserver.server.Request;
 import at.fhtw.httpserver.server.Response;
 import at.fhtw.mtcgapp.controller.Controller;
-import at.fhtw.mtcgapp.dal.DataAccessException;
+import at.fhtw.mtcgapp.dal.exceptions.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.CardRepo;
 import at.fhtw.mtcgapp.dal.repos.PackageRepo;
@@ -51,6 +51,7 @@ public class PackagesController extends Controller {
                 int packageId = packageRepo.createPackageAndGetId();
                 for (Card card : cards) {
                     card.setFk_pid(packageId);
+                    this.setTypeAndElement(card);
                     cardRepo.createCard(card);
                 }
                 uow.commitTransaction();
@@ -80,5 +81,25 @@ public class PackagesController extends Controller {
                 ContentType.JSON,
                 "{ \"message\" : \"Internal Server Error\" }"
         );
+    }
+
+    private void setTypeAndElement(Card card) {
+        String name = card.getName().toLowerCase();
+        if(name.contains("fire")) {
+            card.setElement("fire");
+        }
+        else if(name.contains("water")) {
+            card.setElement("water");
+        }
+        else {
+            card.setElement("normal");
+        }
+
+        if(name.contains("spell")) {
+            card.setType("spell");
+        }
+        else {
+            card.setType("monster");
+        }
     }
 }

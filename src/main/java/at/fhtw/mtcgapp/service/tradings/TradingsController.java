@@ -5,7 +5,7 @@ import at.fhtw.httpserver.http.HttpStatus;
 import at.fhtw.httpserver.server.Request;
 import at.fhtw.httpserver.server.Response;
 import at.fhtw.mtcgapp.controller.Controller;
-import at.fhtw.mtcgapp.dal.DataAccessException;
+import at.fhtw.mtcgapp.dal.exceptions.DataAccessException;
 import at.fhtw.mtcgapp.dal.UOW;
 import at.fhtw.mtcgapp.dal.repos.CardRepo;
 import at.fhtw.mtcgapp.dal.repos.StoreRepo;
@@ -224,7 +224,7 @@ public class TradingsController extends Controller {
                     cardToTrade.isIn_deck() ||
                     cardToTrade.isIs_locked() ||
                     (cardToTrade.getDamage() < tradingDeal.getMinimumDamage()) ||
-                    //!cardToTrade.getType().equals(tradingDeal.getType()) ||
+                    !cardToTrade.getType().equals(tradingDeal.getType()) ||
                     tradingDeal.getFkUid() == user.getId()) {
                 uow.commitTransaction();
                 return new Response(HttpStatus.FORBIDDEN,
@@ -233,9 +233,7 @@ public class TradingsController extends Controller {
                 );
             }
 
-            System.out.println(tradingDeal.getFkUid());
             User provider = userRepo.getUserById(tradingDeal.getFkUid());
-            System.out.println(provider.toString());
             cardRepo.updateCardOwnerById(provider.getId(), tradingDeal.getCardToTrade());
             tradingRepo.unlockCardById(tradingDeal.getCardToTrade());
             cardRepo.updateCardOwnerById(user.getId(), cardToTrade.getCid());
