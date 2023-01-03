@@ -2,6 +2,8 @@ package at.fhtw;
 
 import at.fhtw.httpserver.server.Server;
 import at.fhtw.httpserver.utils.Router;
+import at.fhtw.mtcgapp.service.gift.GiftController;
+import at.fhtw.mtcgapp.service.gift.GiftService;
 import at.fhtw.mtcgapp.service.battle.BattleController;
 import at.fhtw.mtcgapp.service.battle.BattleService;
 import at.fhtw.mtcgapp.service.cards.CardsController;
@@ -9,6 +11,8 @@ import at.fhtw.mtcgapp.service.cards.CardsService;
 import at.fhtw.mtcgapp.service.deck.DeckController;
 import at.fhtw.mtcgapp.service.deck.DeckService;
 import at.fhtw.mtcgapp.service.echo.EchoService;
+import at.fhtw.mtcgapp.service.messages.MessageController;
+import at.fhtw.mtcgapp.service.messages.MessageService;
 import at.fhtw.mtcgapp.service.packages.PackagesController;
 import at.fhtw.mtcgapp.service.packages.PackagesService;
 import at.fhtw.mtcgapp.service.scoreboard.ScoreboardController;
@@ -49,6 +53,9 @@ public class Main {
         router.addService("/score", new ScoreboardService(new ScoreboardController()));
         router.addService("/tradings", new TradingsService(new TradingsController()));
         router.addService("/battles", new BattleService(new BattleController()));
+        //unique feature
+        router.addService("/messages", new MessageService(new MessageController()));
+        router.addService("/gift", new GiftService(new GiftController()));
         return router;
     }
 }

@@ -72,3 +72,11 @@ CREATE TABLE "battle-log" (
                               "damageCardB" integer,
                               "finished" bool
 );
+
+DROP TABLE IF EXISTS "message";
+CREATE TABLE "message" (
+                           "mid" serial,
+                           "sender" varchar(64),
+                           "recipient" varchar(64),
+                           "message" text
+);

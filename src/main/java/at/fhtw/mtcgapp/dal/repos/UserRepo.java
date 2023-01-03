@@ -208,4 +208,26 @@ public class UserRepo {
             throw new DataAccessException("updateLosses error");
         }
     }
+
+    public void removeCoins(User user, int amount) throws DataAccessException {
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("UPDATE \"user\" SET coins = coins - ? WHERE username = ?")) {
+            preparedStatement.setInt(1, amount);
+            preparedStatement.setString(2, user.getUsername());
+            preparedStatement.execute();
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("removeCoins error");
+        }
+    }
+
+    public void addCoins(User user, int amount) throws DataAccessException {
+        try(PreparedStatement preparedStatement = this.uow.prepareStatement("UPDATE \"user\" SET coins = coins + ? WHERE username = ?")) {
+            preparedStatement.setInt(1, amount);
+            preparedStatement.setString(2, user.getUsername());
+            preparedStatement.execute();
+        }
+        catch (SQLException sqlException) {
+            throw new DataAccessException("addCoins error");
+        }
+    }
 }
