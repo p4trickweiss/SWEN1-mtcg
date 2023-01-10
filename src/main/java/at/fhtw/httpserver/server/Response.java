@@ -37,4 +37,20 @@ public class Response {
                 "\r\n" +
                 this.content;
     }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public String getContent() {
+        return content;
+    }
 }

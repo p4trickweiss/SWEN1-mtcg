@@ -83,7 +83,7 @@ public class PackagesController extends Controller {
         );
     }
 
-    private void setTypeAndElement(Card card) {
+    public void setTypeAndElement(Card card) {
         String name = card.getName().toLowerCase();
         if(name.contains("fire")) {
             card.setElement("fire");
