@@ -7,10 +7,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class RequestTest {
 
     @Test
-    void getPathname() {
-    }
-
-    @Test
     void testGetParamsWithId() {
         Request request = new Request();
         request.setPathname("/echo/1");
@@ -43,5 +39,20 @@ class RequestTest {
         assertEquals("/echo", request.getServiceRoute());
         assertEquals("1", request.getPathParts().get(1));
         assertEquals("cards", request.getPathParts().get(2));
+    }
+
+    @Test
+    void testGetToken() {
+        Request request = new Request();
+        request.getHeaderMap().ingest("Authorization: Basic if21b090-mtcgToken");
+
+        assertEquals("if21b090-mtcgToken", request.getToken());
+    }
+
+    @Test
+    void testGetTokenEmpty() {
+        Request request = new Request();
+
+        assertEquals(" ", request.getToken());
     }
 }

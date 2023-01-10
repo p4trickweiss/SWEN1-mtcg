@@ -115,4 +115,8 @@ public class Request {
         }
         return " ";
     }
+
+    public void setToken(String token) {
+        this.getHeaderMap().setToken(token);
+    }
 }

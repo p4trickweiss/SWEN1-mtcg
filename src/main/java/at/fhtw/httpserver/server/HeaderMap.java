@@ -25,6 +25,18 @@ public class HeaderMap {
         return Integer.parseInt(header);
     }
 
+    public void setContentLengthHeader(String length) {
+        headers.put("Content-Length", length);
+    }
+
+    public void setContentTypeHeader(String type) {
+        headers.put("Content-Type", type);
+    }
+
+    public void setToken(String token) {
+        headers.put("Authorization", token);
+    }
+
     public void print() {
         System.out.println(headers);
     }
